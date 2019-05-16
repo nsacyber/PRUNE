@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension">
+
+  <!--279D11D8-21D2-41FD-AC15-F66090EDBCB8-->
+
+  <Product Id="*" Name="Prune" Language="1033" Version="1.0.0" Manufacturer="Y11121" UpgradeCode="F5E2EC02-0A7A-4D26-A7D7-5D83C889895E">
+    <Package Id="*" InstallerVersion="200" Compressed="yes" InstallScope="perMachine" Platform="x86"/>
+
+
+
+    <!-- Remove Repair and Modify options from the Add and Remove Programs interface-->
+    <Property Id="ARPNOREPAIR" Value="yes" Secure="yes" />
+    <Property Id="ARPNOMODIFY" Value="yes" Secure="yes" />
+
+    <!-- Property used to ensure that correct version of the .NET Framework is installed-->
+    <PropertyRef Id="WIX_IS_NETFRAMEWORK_46_OR_LATER_INSTALLED"/>
+
+    <!-- Verify that the OS is a supported version -->
+    <Condition Message="Prune is only supported on Windows 7 SP1, Windows Server 2012, or higher.">
+      <![CDATA[Installed OR (VersionNT >= 601) OR (VersionNT64 >= 601)]]>
+    </Condition>
+
+    <!-- Abort instillation if the correct .NET framework is not installed-->
+    <Condition Message="Prune requires .NET Framework version 4.6 or greater. Please install the correct version of the .NET Framework and then run this installer again.">
+      <![CDATA[Installed OR WIX_IS_NETFRAMEWORK_46_OR_LATER_INSTALLED]]>
+    </Condition>
+
+    <!-- We have one media item, and it is embedded in the MSI file -->
+    <Media Id="1" Cabinet="prune1.cab" EmbedCab="yes" />
+
+    <!-- Build the directory structure -->
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder" Name="ProgFiles" >
+        <Directory Id="Prune" Name="Prune">
+          <!-- JSON.NET library dependency-->
+          <Component Id="JsonNet" Guid="F8F817E0-7FEF-4021-8AF4-FFD4DE6ED556" Win64="no">
+            <File Id="JsonNetLibrary" Name="Newtonsoft.Json.dll" Source="Newtonsoft.Json.dll" KeyPath="yes" />
+          </Component>
+          <!-- Microsoft's TraceEvent library dependency-->
+          <Component Id="TraceEvent" Guid="C05D90B3-0C67-4431-907B-E13E9CE4CFEF" KeyPath="yes" Win64="no">
+            <File Id="Dia2Lib" Name="Dia2Lib.dll" Source="Dia2Lib.dll" />
+            <File Id="FastSerial" Name="Microsoft.Diagnostics.FastSerialization.dll" Source="Microsoft.Diagnostics.FastSerialization.dll"/>
+            <File Id="TraceEventDll" Name="Microsoft.Diagnostics.Tracing.TraceEvent.dll" Source="Microsoft.Diagnostics.Tracing.TraceEvent.dll"/>
+            <File Id="OsExt" Name="OSExtensions.dll" Source="OSExtensions.dll" />
+            <File Id="InteropRuntimeInfo" Name="System.Runtime.InteropServices.RuntimeInformation.dll" Source="System.Runtime.InteropServices.RuntimeInformation.dll" />
+            <File Id="TraceRelogger" Name="TraceReloggerLib.dll" Source="TraceReloggerLib.dll" />
+          </Component>
+          <!-- The Prune library file-->
+          <Component Id="PruneLibrary" Guid="8C22BBB9-8F0B-434E-8FA8-E5B680730C01" Win64="no">
+            <File Id="DllFile" Name="PruneLibrary.dll" Source="PruneLibrary.dll" KeyPath="yes" />
+          </Component>
+          <!-- The Prune Service exe. Also included managers for the service for automatic installation and uninstallation of the service-->
+          <Component Id="PruneService" Guid="9F7D3603-EE5F-448B-A82D-05E24715665E" Win64="no">
+            <File Id="ServiceFile" Name="PruneService.exe" Source="PruneService.exe" KeyPath="yes" />
+            <ServiceInstall Id="PruneService_Install" Name="Prune" Account="LocalSystem" Description="Monitors the resource usage of processes" ErrorControl="normal" Start="auto" Type="ownProcess" Vital="yes" />
+            <ServiceControl Id="PruneService_Control" Name="Prune" Remove="uninstall" Stop="uninstall" Wait="yes" />
+          </Component>
+          <!-- Command line tool-->
+          <Component Id="CommandLineTool" Guid="279D11D8-21D2-41FD-AC15-F66090EDBCB8" KeyPath="yes" Win64="no">
+            <File Id="cmdToolFile" Name="Prune.exe" Source="Prune.exe" />
+          </Component>
+          <!-- powershell script-->
+          <Component Id="ReportGeneratorScript" Guid="F1B2F013-4017-4EB1-9080-A7DF79647D6E" KeyPath="yes" Win64="no">
+            <File Id="ScriptFile" Name="ReportGenerator.ps1" Source="ReportGenerator.ps1" />
+          </Component>
+          <Component Id="ReadmeFileComp" Guid="5FCF71CB-4225-48AD-A461-E0568DF28397" KeyPath="yes" Win64="no">
+            <File Id="readmeFile" Name="README.md" Source="README.md" />
+          </Component>
+        </Directory>
+      </Directory>
+      <Directory Id="CommonAppDataFolder">
+        <Directory Id="PruneDataFolder" Name="Prune" >
+          <!-- config file and whitelist file-->
+          <Component Id="Configuration" Guid="12EAA5E2-0486-4A6F-93D9-70DE9E605633" KeyPath="yes" Win64="no">
+            <File Id="ConfigFile" Name="config.json" Source="config.json"/>
+            <File Id="WhitelistFile" Name="whitelist.txt" Source="whitelist.txt"/>
+          </Component>
+          <!-- I need to provide this and I have no idea why. The tutorial told me to -->
+          <Component Id="PruneDataFolderComponent" Guid="A0730FA7-AD4C-4426-A424-F283E26A9DB5" >
+            <RegistryValue Root="HKLM" Key="Software\[ProductName]" Type="string" Value="" KeyPath="yes" />
+          </Component>
+        </Directory>
+      </Directory>
+    </Directory>
+
+    <!-- Do not allow older version to be installed on top of a newer version-->
+    <!-- If trying to install the same version, upgrade. This prevents version duplication-->
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." AllowSameVersionUpgrades="yes" />
+
+    <!-- Components -->
+    <Feature Id="Complete" Title="Prune" Level="1">
+      <ComponentRef Id="PruneLibrary" />
+      <ComponentRef Id="PruneService" />
+      <ComponentRef Id="Configuration" />
+      <ComponentRef Id="PruneDataFolderComponent" />
+      <ComponentRef Id="CommandLineTool" />
+      <ComponentRef Id="ReportGeneratorScript" />
+      <ComponentRef Id="ReadmeFileComp"/>
+      <ComponentRef Id="JsonNet" />
+      <ComponentRef Id="TraceEvent" />
+    </Feature>
+  </Product>
+</Wix>
