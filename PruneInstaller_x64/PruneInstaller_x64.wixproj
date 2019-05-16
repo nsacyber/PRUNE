@@ -47,7 +47,7 @@
     <Content Include="System.Runtime.InteropServices.RuntimeInformation.dll" />
     <Content Include="TraceReloggerLib.dll" />
     <Content Include="whitelist.txt" />
-    <Content Include="_README.md" />
+    <Content Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <WixExtension Include="WixNetFxExtension">
