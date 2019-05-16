@@ -11,13 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PruneLibrary", "PruneLibrar
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{88F03FB9-51A5-4A65-B90E-D3194BA532EC}"
 	ProjectSection(SolutionItems) = preProject
-		_README.md = _README.md
+		README.md = README.md
 		config.json = config.json
-		config_HBSS.json = config_HBSS.json
-		IPHelperApiCode.txt = IPHelperApiCode.txt
 		ReportGenerator.ps1 = ReportGenerator.ps1
 		whitelist.txt = whitelist.txt
-		whitelist_HBSS.txt = whitelist_HBSS.txt
 	EndProjectSection
 EndProject
 Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "PruneInstaller_x64", "PruneInstaller_x64\PruneInstaller_x64.wixproj", "{CBDEE59E-8B4A-4F0B-93C0-67D3CE9C46ED}"
