@@ -1,4 +1,4 @@
-#Test whitelist file
-explorer.exe
-winlogon.exe
-notepad.exe
+# Test whitelist file
+explorer
+winlogon
+notepad
