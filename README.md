@@ -12,7 +12,7 @@ and is required for both the service and the command-line tool. The service is d
 monitoring of processes and allows users to define a list of multiple processes to monitor. The 
 command-line tool allows users to monitor a single process for a defined amount of time. 
 
-### Dependencies and Requirements
+## Dependencies and Requirements
 
 PRUNE requires version 4.6 or higher of the .NET Framework. This should be installed 
 before installing PRUNE.
@@ -22,7 +22,7 @@ PRUNE is compatable with Windows 7 SP1 and later and Server 2012 and later.
 If building from source, Wix version 3 is required to build the installers. The Wix 
 Visual Studio plugin is required to import the installer projects into Visual Studio. 
 
-### Installation
+## Installation
 
 To install the PRUNE suite, simply run the correct installer for your OS, either 
 `PruneInstaller_x86.msi` for 32 bit OSes or `PruneInstaller_x64.msi` 
@@ -31,9 +31,9 @@ script are placed in `C:\Program Files\Prune`. The Installer also creates
 `C:\ProgramData\Prune`, which is used to store the data files created by PRUNE 
 and store the configuration files of the service.
 
-### Prune Service
+## Prune Service
 
-##### Configuration
+### Configuration
 
 Both configuration files are found in `C:\ProgramData\Prune`.
 
@@ -54,7 +54,7 @@ a dll or exe file, including the file extension. The service will search each cu
 and begin montoring any that has the specified module loaded. PRUNE will not be able to check
 loaded modules of any protected process. These processes will be skipped when checking for the module.
 
-##### Usage
+### Usage
 
 After installation, any needed configuration changes should be made as per the above section. 
 Once configured, the process can be started. 
@@ -80,9 +80,9 @@ When the service shuts down, it dumps its cache to a data file. On start up, the
 the PRUNE root directory for any unlogged data files and either generate a report with that 
 data immediately or record the file name for use during the next report generation.
 
-### PRUNE Command-Line Tool
+## PRUNE Command-Line Tool
 
-##### Usage
+### Usage
 
 The command-line tool has 2 required arguments:
 * `<Process_Name>` - The name or ID of the process to monitor. If a name is provided and there are multiple processes with that name running, they will all be monitored. Use a process's PID to target a specific process.
@@ -95,7 +95,7 @@ The command-line tool will gather data on the specified process every second and
 `C:\ProgramData\Prune\<Process_Name>\logged\`. Once the report is generated, the process will output that it 
 has finished and exit. 
 
-### Report Generator Powershell Script
+## Report Generator Powershell Script
 
 The provided powershell script, `ReportGenerator.ps1`, can be used to generate a detailed usage report 
 into a JSON file from the data files produced by the PRUNE service and command-line tool. 
