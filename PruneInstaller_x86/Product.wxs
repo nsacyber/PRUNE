@@ -33,6 +33,10 @@
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramFilesFolder" Name="ProgFiles" >
         <Directory Id="Prune" Name="Prune">
+          <!-- Event Manifest Resource DLL-->
+          <Component Id="EventDll" Guid="82cd29c5-5cde-4ecc-900d-3af1b1e93761" Win64="no">
+            <File Id="EventDllFile" Name="PruneEventManifest.dll" Source="PruneEventManifest.dll" KeyPath="yes" />
+          </Component>
           <!-- JSON.NET library dependency-->
           <Component Id="JsonNet" Guid="F8F817E0-7FEF-4021-8AF4-FFD4DE6ED556" Win64="no">
             <File Id="JsonNetLibrary" Name="Newtonsoft.Json.dll" Source="Newtonsoft.Json.dll" KeyPath="yes" />
@@ -99,6 +103,7 @@
       <ComponentRef Id="ReadmeFileComp"/>
       <ComponentRef Id="JsonNet" />
       <ComponentRef Id="TraceEvent" />
+      <ComponentRef Id="EventDll"/>
     </Feature>
   </Product>
 </Wix>

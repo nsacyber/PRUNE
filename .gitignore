@@ -368,3 +368,6 @@ PruneInstaller_x64/*.txt
 
 #Ignore wix extra files
 *.wixpdb
+*.bin
+*.res
+*.rc

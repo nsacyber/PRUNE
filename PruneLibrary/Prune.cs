@@ -21,16 +21,26 @@ namespace PruneLibrary
 
         public static EventLog EventLog { get; private set; }
 
-        public static void SetEventLog(EventLog eveLog)
-        {
+        public static void SetEventLog(EventLog eveLog) { 
             EventLog = eveLog;
         }
 
-        public static void HandleError(bool isService, string message)
+        public static void HandleError(bool isService, int source, string message)
         {
             if (isService)
             {
-                EventLog.WriteEntry(message, EventLogEntryType.Error, 200);
+				switch (source) {
+					case 0:
+						//Source of error is the library code
+						EventLog.WriteEntry("Handling error: " + message);
+						PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteLIBRARY_ERROR_EVENT(message);
+						break;
+					case 1:
+						EventLog.WriteEntry("Handling error: " + message);
+						PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteSERVICE_ERROR_EVENT(message);
+						//Souce of error is the service code
+						break;
+				}
             }
             else
             {
@@ -161,7 +171,7 @@ namespace PruneLibrary
                 }
                 catch (Exception e)
                 {
-                    HandleError(isService, "Error initializing ETW Session\n" + e.Message);
+                    HandleError(isService, 0, "Error initializing ETW Session\n" + e.Message);
                     return;
                 }
 
@@ -169,7 +179,7 @@ namespace PruneLibrary
 
                 if (TraceEventSession.IsElevated() != true)
                 {
-                    HandleError(isService,
+                    HandleError(isService, 0,
                         "The service must have elevated privilages to utilize ETW. Ensure the service is running as Local System and restart the service");
                     return;
                 }
@@ -376,7 +386,7 @@ namespace PruneLibrary
                 }
                 catch (Exception e)
                 {
-                    HandleError(isService, "Error creating event handlers\n" + e.Message);
+                    HandleError(isService, 0, "Error creating event handlers\n" + e.Message);
                 }
 
                 //Start the session in a thread
@@ -386,7 +396,7 @@ namespace PruneLibrary
                 }
                 catch (Exception e)
                 {
-                    HandleError(isService, "Error starting ETW Thread\n\n" + e.Message + "\n\n" + e.StackTrace);
+                    HandleError(isService, 0, "Error starting ETW Thread\n\n" + e.Message + "\n\n" + e.StackTrace);
                 }
             }
         }
