@@ -146,11 +146,6 @@ namespace PruneLibrary
                 {
                     if (_isService)
                     {
-						//Prune.EventLog.WriteEntry(
-						//	"Unable to attach listener to process exit event for process " + WhitelistEntry + "_" +
-						//	ProcessId +
-						//	". If this is part of a multi-process program and any process that shares the name closes, behaviour will be undefined.\n",
-						//	EventLogEntryType.Warning, 5);
 						PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteEXIT_EVENT_ERROR_EVENT(WhitelistEntry + "_" +
 							ProcessId);
                     }
@@ -599,30 +594,20 @@ namespace PruneLibrary
 
             try
             {
-				//string outputString = WhitelistEntry + "_" + ProcessId + " -- # of Data Points Collected: " + dataPointCount +
-				//"\n\n% CPU Usage\n" + "Average: " + averageCpu.ToString("N2") + "; Maximum: " + maxCpu.ToString("N2") + "; Minimum: " + minCpu.ToString("N2") +
-				//"\n\nPrivate Bytes\n" + "Average: " + averagePriv.ToString("N0") + "; Maximum: " + maxPriv.ToString("N0") + "; Minimum: " + minPriv.ToString("N0") +
-				//"\n\nPrivate Working Set\n" + "Average: " + averageWorking.ToString("N0") + "; Maximum: " + maxWorking.ToString("N0") + "; Minimum: " + minWorking.ToString("N0") +
-				//"\n\nDisk Read Operations\nTotal: " + totalDiskReadOps.ToString("N0") + "; Average: " + averageDiskReadOps.ToString("N0") + "; Maximum: " + maxDiskReadOps.ToString("N0") + "; Minimum: " + minDiskReadOps.ToString("N0") +
-				//"\n\nDisk Write Operations\nTotal: " + totalDiskWriteOps.ToString("N0") + "; Average: " + averageDiskWriteOps.ToString("N0") + "; Maximum: " + maxDiskWriteOps.ToString("N0") + "; Minimum: " + minDiskWriteOps.ToString("N0") +
-				//"\n\nDisk Read Bytes\nTotal: " + totalDiskReadBytes.ToString("N0") + "; Average: " + averageDiskReadBytes.ToString("N0") + "; Maximum: " + maxDiskReadBytes.ToString("N0") + "; Minimum: " + minDiskReadBytes.ToString("N0") +
-				//"\n\nDisk Write Bytes\nTotal: " + totalDiskWriteBytes.ToString("N0") + "; Average: " + averageDiskWriteBytes.ToString("N0") + "; Maximum: " + maxDiskWriteBytes.ToString("N0") + "; Minimum: " + minDiskWriteBytes.ToString("N0") +
-				//"\n\nProcess TCP Bytes Sent\nTotal: " + totalTcpOut.ToString("N0") + "; Average: " + averageTcpOut.ToString("N0") + "; Maximum: " + maxTcpOut.ToString("N0") + "; Minimum: " + minTcpOut.ToString("N0") +
-				//"\n\nProcess TCP Bytes Received\nTotal: " + totalTcpIn.ToString("N0") + "; Average: " + averageTcpIn.ToString("N0") + "; Maximum: " + maxTcpIn.ToString("N0") + "; Minimum: " + minTcpIn.ToString("N0") +
-				//"\n\nProcess UDP Bytes Sent\nTotal: " + totalUdpOut.ToString("N0") + "; Average:" + averageUdpOut.ToString("N0") + "; Maximum: " + maxUdpOut.ToString("N0") + "; Minimum: " + minUdpOut.ToString("N0") +
-				//"\n\nProcess UDP Bytes Received\nTotal: " + totalUdpIn.ToString("N0") + "; Average:" + averageUdpIn.ToString("N0") + "; Maximum: " + maxUdpIn.ToString("N0") + "; Minimum: " + minUdpIn.ToString("N0") +
-				//"\n\nSpecific Connection Statistics";
-
+				//Create array of data structures used for the TCP connection information
 				ConnectionDataStruct[] dataStructs = new ConnectionDataStruct[connectionData.Count];
 				int counter = 0;
 
+				//Create structures from the connectionData objects
 				foreach(TcpConnectionData data in connectionData.Values) {
 					dataStructs[counter] = new ConnectionDataStruct(data);
 					counter++;
 				}
 
+				//Get a pointer to the array
 				IntPtr dataPointer = Marshal.AllocHGlobal(dataStructs.Length);
 
+				//call the event
 				bool returnVal = PruneEvents.PRUNE_EVENT_PROVIDER.EventWritePROCESS_REPORT_EVENT(WhitelistEntry + "_" + ProcessId,
 					dataPointCount, minCpu, maxCpu, averageCpu, minWorking, maxWorking, averageWorking, minPriv, 
 					maxPriv, averagePriv, totalDiskReadBytes, minDiskReadBytes, maxDiskReadBytes, averageDiskReadBytes, 
@@ -632,22 +617,8 @@ namespace PruneLibrary
 					averageTcpOut, totalUdpIn, minUdpIn, maxUdpIn, averageUdpIn, totalUdpOut, minUdpOut, maxUdpOut, averageUdpOut, 
 					Convert.ToUInt32(connectionData.Count), connectionData.Count, dataPointer);
 
-				//Prune.EventLog.WriteEntry("Report return value: " + returnVal);
-
+				//free the array
 				Marshal.FreeHGlobal(dataPointer);
-
-				//Add the information from each individual connection
-				//foreach (TcpConnectionData data in connectionData.Values) {
-				//	data.CalculateStats();
-
-				//	outputString += "\n\n" + data.HostName + " -- " + data.Address;
-				//	outputString += "\nTotal Tcp Bytes Sent: " + data.TotalOut.ToString("N0") + "; Average TCP Bytes Sent: " + data.AverageOut.ToString("N0") + "; Maximum TCP Bytes Sent: " + data.MaxOut.ToString("N0") + "; Minimum TCP Bytes Sent: " + data.MinOut.ToString("N0");
-				//	outputString += "\nTotal Tcp Bytes Sent: " + data.TotalIn.ToString("N0") + "; Average TCP Bytes Received: " + data.AverageIn.ToString("N0") + "; Maximum TCP Bytes Received: " + data.MaxIn.ToString("N0") + "; Minimum TCP Bytes Received: " + data.MinIn.ToString("N0");
-
-				//}
-
-				//write the event
-				//Prune.EventLog.WriteEntry(outputString, EventLogEntryType.Information, 10);
 			}
             catch (Exception e)
             {
@@ -669,7 +640,6 @@ namespace PruneLibrary
 
         public void FinishMonitoring()
         {
-			//Prune.EventLog.WriteEntry("Finishing monitoring for " + WhitelistEntry + "_" + ProcessId, EventLogEntryType.Information, 3);
 			PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteFINISHED_EVENT(WhitelistEntry + "_" + ProcessId);
             NullPerformanceCounters();
             DumpCache();
@@ -739,9 +709,6 @@ namespace PruneLibrary
                 {
                     if (_isService)
                     {
-						//Prune.EventLog.WriteEntry(
-						//	"Information can no longer be gathered for process " + WhitelistEntry + "_" + ProcessId +
-						//	". The most common reason for this is the process ending.", EventLogEntryType.Information, 4);
 						PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteCANNOT_GATHER_EVENT(WhitelistEntry + "_" + ProcessId);
                     }
 

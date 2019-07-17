@@ -34,16 +34,12 @@ namespace PruneLibrary
             {
                 ipEntry = Dns.GetHostEntry(Address.Split(';')[0]);
                 HostName = ipEntry.HostName;
-                if (isService)
-                {
-                    //Prune.EventLog.WriteEntry("Error resolving " + name + " to host name for process " + procName, EventLogEntryType.Information, 100);
-					PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteHOST_NAME_ERROR_EVENT(name);
-                }
             }
             catch (Exception)
             {
                 HostName = "Unknown";
-            }
+				PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteHOST_NAME_ERROR_EVENT(name);
+			}
 
             AverageIn = 0;
             AverageOut = 0;
