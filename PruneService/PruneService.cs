@@ -47,32 +47,32 @@ namespace PruneService
         {
             InitializeComponent();
 
-            eventLog1 = new EventLog();
-            if (!EventLog.SourceExists(EventSourceName))
-            {
-                EventLog.CreateEventSource(EventSourceName, EventLogName);
-            }
-            eventLog1.Source = EventSourceName;
-            eventLog1.Log = EventLogName;
-        }
+			//eventLog1 = new EventLog();
+			//if (!EventLog.SourceExists(EventSourceName)) {
+			//	EventLog.CreateEventSource(EventSourceName, EventLogName);
+			//}
+			//eventLog1.Source = EventSourceName;
+			//eventLog1.Log = EventLogName;
+		}
 
-        static void CurrentDomian_UnhandledException(object sender, UnhandledExceptionEventArgs e)
-        {
-            Prune.EventLog.WriteEntry("Unhandled Exception:\n" + (e.ExceptionObject as Exception).Message + "\n" + (e.ExceptionObject as Exception).StackTrace, EventLogEntryType.Error, 5000);
-        }
+		//static void CurrentDomian_UnhandledException(object sender, UnhandledExceptionEventArgs e) {
+		//	Prune.EventLog.WriteEntry("Unhandled Exception:\n" + (e.ExceptionObject as Exception).Message + "\n" + (e.ExceptionObject as Exception).StackTrace, EventLogEntryType.Error, 5000);
+		//}
 
-        protected override void OnStart(string[] args)
+		protected override void OnStart(string[] args)
         {//Set the event log in the static class that the Library can use
-            Prune.SetEventLog(eventLog1);
+            //Prune.SetEventLog(eventLog1);
 
-            AppDomain.CurrentDomain.FirstChanceException += (IChannelSender, eventArgs) =>
-            {
-                Prune.EventLog.WriteEntry(eventArgs.Exception.ToString() + "\n" + eventArgs.Exception.StackTrace, EventLogEntryType.Error, 4000);
-            };
+			//AppDomain.CurrentDomain.FirstChanceException += (IChannelSender, eventArgs) => {
+			//	Prune.EventLog.WriteEntry(eventArgs.Exception.ToString() + "\n" + eventArgs.Exception.StackTrace, EventLogEntryType.Error, 4000);
+			//};
 
-            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomian_UnhandledException);
+			//AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomian_UnhandledException);
 
-            eventLog1.WriteEntry("Prune service starting", EventLogEntryType.Information, 1);
+			//eventLog1.WriteEntry("Prune service starting", EventLogEntryType.Information, 1);
+			bool returnVal = PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteSERVICE_STARTING_EVENT();
+
+			//eventLog1.WriteEntry("Return Value: " + returnVal);
 
             //create the ProgramData directory if it does not already exist
             Directory.CreateDirectory(DirectoryPath);
@@ -105,8 +105,9 @@ namespace PruneService
             }
             catch (Exception e)
             {
-                eventLog1.WriteEntry("Error initializing Prune instances\n" + e.Message + "\n" + e.Source,
-                    EventLogEntryType.Error, 201);
+				//eventLog1.WriteEntry("Error initializing Prune instances\n" + e.Message + "\n" + e.Source,
+				//	EventLogEntryType.Error, 201);
+				Prune.HandleError(true, 1, "Error initializing Prune instances\n" + e.Message + "\n" + e.Source);
             }
 
             try
@@ -116,7 +117,8 @@ namespace PruneService
             }
             catch (Exception e)
             {
-                eventLog1.WriteEntry("Error reading old files\n" + e.Message, EventLogEntryType.Error, 201);
+				//eventLog1.WriteEntry("Error reading old files\n" + e.Message, EventLogEntryType.Error, 201);
+				Prune.HandleError(true, 1, "Error reading old files\n" + e.Message);
             }
 
             //Start the etw sesstion
@@ -130,7 +132,8 @@ namespace PruneService
             }
             catch (Exception e)
             {
-                eventLog1.WriteEntry("Error starting the process monitoring timer\n" + e.Message, EventLogEntryType.Error, 201);
+				//eventLog1.WriteEntry("Error starting the process monitoring timer\n" + e.Message, EventLogEntryType.Error, 201);
+				Prune.HandleError(true, 1, "Error starting the process monitoring timer\n" + e.Message);
                 return;
             }
 
@@ -142,9 +145,10 @@ namespace PruneService
             }
             catch (Exception e)
             {
-                eventLog1.WriteEntry("Error starting the whitelist check timer\n" + e.Message, EventLogEntryType.Error, 201);
-                //cleanup already running timers before exiting
-                _monitorTimer.Stop();
+				//eventLog1.WriteEntry("Error starting the whitelist check timer\n" + e.Message, EventLogEntryType.Error, 201);
+				Prune.HandleError(true, 1, "Error starting the whitelist check timer\n" + e.Message);
+				//cleanup already running timers before exiting
+				_monitorTimer.Stop();
                 return;
             }
 
@@ -156,7 +160,8 @@ namespace PruneService
             }
             catch (Exception e)
             {
-                eventLog1.WriteEntry("Error starting the configuration file check timer\n" + e.Message, EventLogEntryType.Error, 201);
+				//eventLog1.WriteEntry("Error starting the configuration file check timer\n" + e.Message, EventLogEntryType.Error, 201);
+				Prune.HandleError(true, 1, "Error starting the configuration file check timer\n" + e.Message);
                 //cleanup already running timers before exiting
                 _monitorTimer.Stop();
                 _whitelistTimer.Stop();
@@ -187,7 +192,8 @@ namespace PruneService
                 }
                 catch (Exception e)
                 {
-                    eventLog1.WriteEntry("Error while creating config file and writing default setting\n" + e.Message, EventLogEntryType.Error, 201);
+					//eventLog1.WriteEntry("Error while creating config file and writing default setting\n" + e.Message, EventLogEntryType.Error, 201);
+					Prune.HandleError(true, 1, "Error while creating config file and writing default setting\n" + e.Message);
                 }
             }
             else
@@ -214,12 +220,14 @@ namespace PruneService
                     }
                     catch (Exception e)
                     {
-                        eventLog1.WriteEntry("Error setting timer interval times from the configuration file input\n" + e.Message, EventLogEntryType.Error, 201);
+						//eventLog1.WriteEntry("Error setting timer interval times from the configuration file input\n" + e.Message, EventLogEntryType.Error, 201);
+						Prune.HandleError(true, 1, "Error setting timer interval times from the configuration file input\n" + e.Message);
                     }
                 }
                 catch (Exception e)
                 {
-                    eventLog1.WriteEntry("Error reading configuration file\n" + e.Message, EventLogEntryType.Error, 201);
+					//eventLog1.WriteEntry("Error reading configuration file\n" + e.Message, EventLogEntryType.Error, 201);
+					Prune.HandleError(true, 1, "Error reading configuration file\n" + e.Message);
                 }
             }
         }
@@ -241,7 +249,8 @@ namespace PruneService
             }
             catch (Exception e)
             {
-                eventLog1.WriteEntry("Error fetching process specific directories for processing of pre-existing files\n" + e.Message, EventLogEntryType.Error, 201);
+				//eventLog1.WriteEntry("Error fetching process specific directories for processing of pre-existing files\n" + e.Message, EventLogEntryType.Error, 201);
+				Prune.HandleError(true, 1, "Error fetching process specific directories for processing of pre-existing files\n" + e.Message);
                 return;
             }
 
@@ -286,7 +295,8 @@ namespace PruneService
                 }
                 catch (Exception e)
                 {
-                    eventLog1.WriteEntry("Error finding the earliest start and latest finished times of pre-existing files\n" + e.Message, EventLogEntryType.Error, 201);
+					//eventLog1.WriteEntry("Error finding the earliest start and latest finished times of pre-existing files\n" + e.Message, EventLogEntryType.Error, 201);
+					Prune.HandleError(true, 1, "Error finding the earliest start and latest finished times of pre-existing files\n" + e.Message);
                 }
 
                 //Calculate the amount of time between earliest start and latest finish times
@@ -366,7 +376,8 @@ namespace PruneService
                 }
                 catch (Exception e)
                 {
-                    eventLog1.WriteEntry("Error parsing the pre-existing files for process " + processName + "\n" + e.Message, EventLogEntryType.Error, 201);
+					//eventLog1.WriteEntry("Error parsing the pre-existing files for process " + processName + "\n" + e.Message, EventLogEntryType.Error, 201);
+					Prune.HandleError(true, 1, "Error parsing the pre-existing files for process " + processName + "\n" + e.Message);
                 }
 
                 //This runs if the most recent old files are in the current interval and need to be cached rather than logged
@@ -459,7 +470,8 @@ namespace PruneService
 
             Prune.DisposeTraceSession();
 
-            eventLog1.WriteEntry("Service is stopping", EventLogEntryType.Information, 1);
+			//eventLog1.WriteEntry("Service is stopping", EventLogEntryType.Information, 1);
+			PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteSERVICE_EXITING_EVENT();
         }
 
         //Timer function used to get data from Performance Counters
@@ -548,7 +560,8 @@ namespace PruneService
                                 processName.Equals("idle", StringComparison.OrdinalIgnoreCase) ||
                                 processName.Equals("system", StringComparison.OrdinalIgnoreCase))
                             {
-                                eventLog1.WriteEntry("The System (PID 0) and Idle (PID 4) processes cannot be monitored.", EventLogEntryType.Warning, 9);
+								//eventLog1.WriteEntry("The System (PID 0) and Idle (PID 4) processes cannot be monitored.", EventLogEntryType.Warning, 9);
+								PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteDISALLOWED_PROCESS_EVENT();
                                 continue;
                             }
 
@@ -589,8 +602,9 @@ namespace PruneService
                                                             proc.Id,
                                                             moduleName, _writeCacheInterval, _logInterval, DirectoryPath));
                                                         _processIdToWhitelistEntry.Add(proc.Id, moduleName);
-                                                        eventLog1.WriteEntry("Creating Prune instance for " +
-                                                                             moduleName + "_" + proc.Id, EventLogEntryType.Information, 2);
+														//eventLog1.WriteEntry("Creating Prune instance for " +
+														//					 moduleName + "_" + proc.Id, EventLogEntryType.Information, 2);
+														PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteCREATING_INSTANCE_EVENT(moduleName + "_" + proc.Id);
 
                                                         //We don't need to look at the rest of the modules
                                                         break;
@@ -659,9 +673,10 @@ namespace PruneService
                                                 new PruneProcessInstance(true, procId, processName,
                                                     _writeCacheInterval, _logInterval, DirectoryPath));
                                             _processIdToWhitelistEntry.Add(procId, processName);
-                                            eventLog1.WriteEntry("Creating Prune instance for " + processName +
-                                                                 "_" + procId, EventLogEntryType.Information, 2);
-                                        }
+											//eventLog1.WriteEntry("Creating Prune instance for " + processName +
+											//					 "_" + procId, EventLogEntryType.Information, 2);
+											PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteCREATING_INSTANCE_EVENT(processName + "_" + procId);
+										}
                                     }
                                     else
                                     {
@@ -676,10 +691,11 @@ namespace PruneService
                                                     new PruneProcessInstance(true, procId, processName,
                                                         _writeCacheInterval, _logInterval, DirectoryPath));
                                                 _processIdToWhitelistEntry.Add(procId, processName);
-                                                eventLog1.WriteEntry(
-                                                    "Creating Prune instance for " + processName + "_" +
-                                                    procId, EventLogEntryType.Information, 2);
-                                            }
+												//eventLog1.WriteEntry(
+												//	"Creating Prune instance for " + processName + "_" +
+												//	procId, EventLogEntryType.Information, 2);
+												PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteCREATING_INSTANCE_EVENT(processName + "_" + procId);
+											}
                                         }
                                     }
                                 }
@@ -721,7 +737,8 @@ namespace PruneService
                 }
                 catch (Exception e)
                 {
-                    eventLog1.WriteEntry("Error while reading and parsing the whitelist file\n" + e.Message, EventLogEntryType.Error, 201);
+					//eventLog1.WriteEntry("Error while reading and parsing the whitelist file\n" + e.Message, EventLogEntryType.Error, 201);
+					Prune.HandleError(true, 1, "Error while reading and parsing the whitelist file\n" + e.Message);
                 }
             }
             else
@@ -730,11 +747,13 @@ namespace PruneService
                 {
                     //If the whitelist file does not exist, create a blank text file for future use
                     File.CreateText(WhitelistPath);
-                    eventLog1.WriteEntry("No whitelist file existed at 'C:\\ProgramData\\Prune\\whitelist.txt', so a new empty file was created", EventLogEntryType.Information, 8);
+					//eventLog1.WriteEntry("No whitelist file existed at 'C:\\ProgramData\\Prune\\whitelist.txt', so a new empty file was created", EventLogEntryType.Information, 8);
+					PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteNO_WHITELIST_EVENT();
                 }
                 catch (Exception e)
                 {
-                    eventLog1.WriteEntry("Error creating whitelist file\n" + e.Message, EventLogEntryType.Error, 201);
+					//eventLog1.WriteEntry("Error creating whitelist file\n" + e.Message, EventLogEntryType.Error, 201);
+					Prune.HandleError(true, 1, "Error creating whitelist file\n" + e.Message);
                 }
             }
 

@@ -28,18 +28,13 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.eventLog1 = new System.Diagnostics.EventLog();
-            ((System.ComponentModel.ISupportInitialize)(this.eventLog1)).BeginInit();
-            // 
-            // PruneService
-            // 
-            this.ServiceName = "PruneService";
-            ((System.ComponentModel.ISupportInitialize)(this.eventLog1)).EndInit();
+			// 
+			// PruneService
+			// 
+			this.ServiceName = "PruneService";
 
         }
 
         #endregion
-
-        private System.Diagnostics.EventLog eventLog1;
     }
 }

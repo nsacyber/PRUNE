@@ -41,15 +41,21 @@
     <Content Include="Newtonsoft.Json.dll" />
     <Content Include="OSExtensions.dll" />
     <Content Include="Prune.exe" />
+    <Content Include="PruneEventManifest.dll" />
+    <Content Include="PruneEventManifest.man" />
     <Content Include="PruneLibrary.dll" />
     <Content Include="PruneService.exe" />
+    <Content Include="README.md" />
     <Content Include="ReportGenerator.ps1" />
     <Content Include="System.Runtime.InteropServices.RuntimeInformation.dll" />
     <Content Include="TraceReloggerLib.dll" />
     <Content Include="whitelist.txt" />
-    <Content Include="README.md" />
   </ItemGroup>
   <ItemGroup>
+    <WixExtension Include="WixUtilExtension">
+      <HintPath>$(WixExtDir)\WixUtilExtension.dll</HintPath>
+      <Name>WixUtilExtension</Name>
+    </WixExtension>
     <WixExtension Include="WixNetFxExtension">
       <HintPath>$(WixExtDir)\WixNetFxExtension.dll</HintPath>
       <Name>WixNetFxExtension</Name>

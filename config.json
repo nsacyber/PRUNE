@@ -1,1 +1,1 @@
-{ "calculateStatisticsInterval": 86400, "writeCacheToFileInterval": 3600, "dataRecordingInterval": 1, "whitelistCheckInterval": 600, "configCheckInterval": 600 }
+{ "calculateStatisticsInterval": 60, "writeCacheToFileInterval": 30, "dataRecordingInterval": 1, "whitelistCheckInterval": 600, "configCheckInterval": 600 }

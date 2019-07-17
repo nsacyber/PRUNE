@@ -36,7 +36,8 @@ namespace PruneLibrary
                 HostName = ipEntry.HostName;
                 if (isService)
                 {
-                    Prune.EventLog.WriteEntry("Error resolving " + name + " to host name for process " + procName, EventLogEntryType.Information, 100);
+                    //Prune.EventLog.WriteEntry("Error resolving " + name + " to host name for process " + procName, EventLogEntryType.Information, 100);
+					PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteHOST_NAME_ERROR_EVENT(name);
                 }
             }
             catch (Exception)
