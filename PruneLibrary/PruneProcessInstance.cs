@@ -609,13 +609,15 @@ namespace PruneLibrary
 
 				//call the event
 				bool returnVal = PruneEvents.PRUNE_EVENT_PROVIDER.EventWritePROCESS_REPORT_EVENT(WhitelistEntry + "_" + ProcessId,
-					dataPointCount, minCpu, maxCpu, averageCpu, minWorking, maxWorking, averageWorking, minPriv, 
-					maxPriv, averagePriv, totalDiskReadBytes, minDiskReadBytes, maxDiskReadBytes, averageDiskReadBytes, 
-					totalDiskWriteBytes, minDiskWriteBytes, maxDiskWriteBytes, averageDiskWriteBytes, totalDiskReadOps, 
-					minDiskReadOps, maxDiskReadOps, averageDiskReadOps, totalDiskWriteOps, minDiskWriteOps, maxDiskWriteOps, 
-					averageDiskWriteOps, totalTcpIn, minTcpIn, maxTcpIn, averageTcpIn, totalTcpOut, minTcpOut, maxTcpOut, 
-					averageTcpOut, totalUdpIn, minUdpIn, maxUdpIn, averageUdpIn, totalUdpOut, minUdpOut, maxUdpOut, averageUdpOut, 
-					Convert.ToUInt32(connectionData.Count), connectionData.Count, dataPointer);
+					dataPointCount, Prune.ProcessorDescription, Prune.ProcessorName, Prune.ProcessorPhysicalCoreNum, 
+					Prune.ProcessorLogicalCoreNum, Prune.ProcessorCoreSpeed, Prune.ComputerManufacturer, Prune.ComputerModel, 
+					Prune.ComputerProcessorNum, Prune.DiskManufacturer, Prune.DiskModel, Prune.RamSize, minCpu, maxCpu, 
+					averageCpu, minWorking, maxWorking, averageWorking, minPriv, maxPriv, averagePriv, totalDiskReadBytes, 
+					minDiskReadBytes, maxDiskReadBytes, averageDiskReadBytes, totalDiskWriteBytes, minDiskWriteBytes, 
+					maxDiskWriteBytes, averageDiskWriteBytes, totalDiskReadOps, minDiskReadOps, maxDiskReadOps, averageDiskReadOps, 
+					totalDiskWriteOps, minDiskWriteOps, maxDiskWriteOps, averageDiskWriteOps, totalTcpIn, minTcpIn, maxTcpIn, 
+					averageTcpIn, totalTcpOut, minTcpOut, maxTcpOut, averageTcpOut, totalUdpIn, minUdpIn, maxUdpIn, averageUdpIn, 
+					totalUdpOut, minUdpOut, maxUdpOut, averageUdpOut, Convert.ToUInt32(connectionData.Count), connectionData.Count, dataPointer);
 
 				//free the array
 				Marshal.FreeHGlobal(dataPointer);

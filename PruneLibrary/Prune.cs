@@ -8,18 +8,32 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Management;
 
 namespace PruneLibrary
 {
-    //A static class used for general Prune static methods
-    public static class Prune
-    {
-        //ETW
-        private static TraceEventSession _traceSession;
-        private static readonly Dictionary<int, Counters> EtwCounters = new Dictionary<int, Counters>();
-        private static int _etwUsers;
+	//A static class used for general Prune static methods
+	public static class Prune {
 
-        public static void HandleError(bool isService, int source, string message)
+		//ETW
+		private static TraceEventSession _traceSession;
+		private static readonly Dictionary<int, Counters> EtwCounters = new Dictionary<int, Counters>();
+		private static int _etwUsers;
+
+		//Hardware information
+		public static string ProcessorDescription { get; private set; }
+		public static string ProcessorName { get; private set; }
+		public static string ProcessorPhysicalCoreNum { get; private set; }
+		public static string ProcessorLogicalCoreNum { get; private set; }
+		public static string ProcessorCoreSpeed { get; private set; }
+		public static string ComputerManufacturer { get; private set; }
+		public static string ComputerModel { get; private set; }
+		public static string ComputerProcessorNum { get; private set; }
+		public static string DiskManufacturer { get; private set; }
+		public static string DiskModel { get; private set; }
+		public static string RamSize { get; private set; }
+
+		public static void HandleError(bool isService, int source, string message)
         {
             if (isService)
             {
@@ -167,14 +181,46 @@ namespace PruneLibrary
                     return;
                 }
 
-
-
                 if (TraceEventSession.IsElevated() != true)
                 {
                     HandleError(isService, 0,
                         "The service must have elevated privilages to utilize ETW. Ensure the service is running as Local System and restart the service");
                     return;
                 }
+
+				try 
+				{
+					using (ManagementObjectSearcher processor = new ManagementObjectSearcher("select * from Win32_Processor"),
+						computerSystem = new ManagementObjectSearcher("select * from Win32_ComputerSystem"),
+						disks = new ManagementObjectSearcher("select * from Win32_DiskDrive")) 
+					{
+						foreach(ManagementObject obj in processor.Get()) 
+						{
+							ProcessorDescription = obj["Description"].ToString().Trim();
+							ProcessorName = obj["Name"].ToString().Trim();
+							ProcessorPhysicalCoreNum = obj["NumberOfCores"].ToString().Trim();
+							ProcessorLogicalCoreNum = obj["NumberOfLogicalProcessors"].ToString().Trim();
+							ProcessorCoreSpeed = obj["MaxClockSpeed"].ToString().Trim();
+						}
+
+						foreach(ManagementObject obj in computerSystem.Get()) 
+						{
+							ComputerManufacturer = obj["Manufacturer"].ToString().Trim();
+							ComputerModel = obj["Model"].ToString().Trim();
+							ComputerProcessorNum = obj["NumberOfProcessors"].ToString().Trim();
+							RamSize = obj["TotalPhysicalMemory"].ToString().Trim();
+						}
+
+						foreach(ManagementObject obj in disks.Get()) 
+						{
+							DiskManufacturer = obj["Manufacturer"].ToString().Trim();
+							DiskModel = obj["Model"].ToString().Trim();
+						}
+					}
+				} catch(Exception e) 
+				{
+					HandleError(isService, 0, "Error while retrieving Hardware information: " + e.Message + "\n" + e.StackTrace);
+				}
 
                 try
                 {

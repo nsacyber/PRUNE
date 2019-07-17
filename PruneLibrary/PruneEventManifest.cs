@@ -75,7 +75,7 @@ using System.Security.Principal;
         //
         // Event method for PROCESS_REPORT_EVENT
         //
-        public static bool EventWritePROCESS_REPORT_EVENT(string Process, uint Samples, double ProcessorTimePercentMinimum, double ProcessorTimePercentMaximum, double ProcessorTimePercentAverage, long WorkingSetMinimum, long WorkingSetMaximum, long WorkingSetAverage, long PrivateBytesMinimum, long PrivateBytesMaximum, long PrivateBytesAverage, long DiskBytesReadTotal, long DiskBytesReadMinimum, long DiskBytesReadMaximum, long DiskBytesReadAverage, long DiskBytesWrittenTotal, long DiskBytesWrittenMinimum, long DiskBytesWrittenMaximum, long DiskBytesWrittenAverage, long DiskReadOperationTotal, long DiskReadOperationMinimum, long DiskReadOperationMaximum, long DiskReadOperationAverage, long DiskWriteOperationTotal, long DiskWriteOperationMinimum, long DiskWriteOperationMaximum, long DiskWriteOperationAverage, long TcpBytesReceivedTotal, long TcpBytesReceivedMinimum, long TcpBytesReceivedMaximum, long TcpBytesReceivedAverage, long TcpBytesSentTotal, long TcpBytesSentMinimum, long TcpBytesSentMaximum, long TcpBytesSentAverage, long UdpBytesReceivedTotal, long UdpBytesReceivedMinimum, long UdpBytesReceivedMaximum, long UdpBytesReceivedAverage, long UdpBytesSentTotal, long UdpBytesSentMinimum, long UdpBytesSentMaximum, long UdpBytesSentAverage, uint TcpConnectionsCount, int TcpConnections_Len_, IntPtr TcpConnections)
+        public static bool EventWritePROCESS_REPORT_EVENT(string Process, uint Samples, string ProcessorDescription, string ProcessorName, string ProcessorPhysicalCoreNum, string ProcessorLogicalCoreNum, string ProcessorCoreSpeed, string ComputerManufacturer, string ComputerModel, string ComputerProcessorNum, string DiskManufacturer, string DiskModel, string RamSize, double ProcessorTimePercentMinimum, double ProcessorTimePercentMaximum, double ProcessorTimePercentAverage, long WorkingSetMinimum, long WorkingSetMaximum, long WorkingSetAverage, long PrivateBytesMinimum, long PrivateBytesMaximum, long PrivateBytesAverage, long DiskBytesReadTotal, long DiskBytesReadMinimum, long DiskBytesReadMaximum, long DiskBytesReadAverage, long DiskBytesWrittenTotal, long DiskBytesWrittenMinimum, long DiskBytesWrittenMaximum, long DiskBytesWrittenAverage, long DiskReadOperationTotal, long DiskReadOperationMinimum, long DiskReadOperationMaximum, long DiskReadOperationAverage, long DiskWriteOperationTotal, long DiskWriteOperationMinimum, long DiskWriteOperationMaximum, long DiskWriteOperationAverage, long TcpBytesReceivedTotal, long TcpBytesReceivedMinimum, long TcpBytesReceivedMaximum, long TcpBytesReceivedAverage, long TcpBytesSentTotal, long TcpBytesSentMinimum, long TcpBytesSentMaximum, long TcpBytesSentAverage, long UdpBytesReceivedTotal, long UdpBytesReceivedMinimum, long UdpBytesReceivedMaximum, long UdpBytesReceivedAverage, long UdpBytesSentTotal, long UdpBytesSentMinimum, long UdpBytesSentMaximum, long UdpBytesSentAverage, uint TcpConnectionsCount, int TcpConnections_Len_, IntPtr TcpConnections)
         {
 
             if (!m_provider.IsEnabled())
@@ -83,7 +83,7 @@ using System.Security.Principal;
                 return true;
             }
 
-            return m_provider.Templatet1(ref PROCESS_REPORT_EVENT, Process, Samples, ProcessorTimePercentMinimum, ProcessorTimePercentMaximum, ProcessorTimePercentAverage, WorkingSetMinimum, WorkingSetMaximum, WorkingSetAverage, PrivateBytesMinimum, PrivateBytesMaximum, PrivateBytesAverage, DiskBytesReadTotal, DiskBytesReadMinimum, DiskBytesReadMaximum, DiskBytesReadAverage, DiskBytesWrittenTotal, DiskBytesWrittenMinimum, DiskBytesWrittenMaximum, DiskBytesWrittenAverage, DiskReadOperationTotal, DiskReadOperationMinimum, DiskReadOperationMaximum, DiskReadOperationAverage, DiskWriteOperationTotal, DiskWriteOperationMinimum, DiskWriteOperationMaximum, DiskWriteOperationAverage, TcpBytesReceivedTotal, TcpBytesReceivedMinimum, TcpBytesReceivedMaximum, TcpBytesReceivedAverage, TcpBytesSentTotal, TcpBytesSentMinimum, TcpBytesSentMaximum, TcpBytesSentAverage, UdpBytesReceivedTotal, UdpBytesReceivedMinimum, UdpBytesReceivedMaximum, UdpBytesReceivedAverage, UdpBytesSentTotal, UdpBytesSentMinimum, UdpBytesSentMaximum, UdpBytesSentAverage, TcpConnectionsCount, TcpConnections_Len_, TcpConnections);
+            return m_provider.Templatet1(ref PROCESS_REPORT_EVENT, Process, Samples, ProcessorDescription, ProcessorName, ProcessorPhysicalCoreNum, ProcessorLogicalCoreNum, ProcessorCoreSpeed, ComputerManufacturer, ComputerModel, ComputerProcessorNum, DiskManufacturer, DiskModel, RamSize, ProcessorTimePercentMinimum, ProcessorTimePercentMaximum, ProcessorTimePercentAverage, WorkingSetMinimum, WorkingSetMaximum, WorkingSetAverage, PrivateBytesMinimum, PrivateBytesMaximum, PrivateBytesAverage, DiskBytesReadTotal, DiskBytesReadMinimum, DiskBytesReadMaximum, DiskBytesReadAverage, DiskBytesWrittenTotal, DiskBytesWrittenMinimum, DiskBytesWrittenMaximum, DiskBytesWrittenAverage, DiskReadOperationTotal, DiskReadOperationMinimum, DiskReadOperationMaximum, DiskReadOperationAverage, DiskWriteOperationTotal, DiskWriteOperationMinimum, DiskWriteOperationMaximum, DiskWriteOperationAverage, TcpBytesReceivedTotal, TcpBytesReceivedMinimum, TcpBytesReceivedMaximum, TcpBytesReceivedAverage, TcpBytesSentTotal, TcpBytesSentMinimum, TcpBytesSentMaximum, TcpBytesSentAverage, UdpBytesReceivedTotal, UdpBytesReceivedMinimum, UdpBytesReceivedMaximum, UdpBytesReceivedAverage, UdpBytesSentTotal, UdpBytesSentMinimum, UdpBytesSentMaximum, UdpBytesSentAverage, TcpConnectionsCount, TcpConnections_Len_, TcpConnections);
         }
 
         //
@@ -233,6 +233,17 @@ using System.Security.Principal;
             ref EventDescriptor eventDescriptor,
             string Process,
             uint Samples,
+            string ProcessorDescription,
+            string ProcessorName,
+            string ProcessorPhysicalCoreNum,
+            string ProcessorLogicalCoreNum,
+            string ProcessorCoreSpeed,
+            string ComputerManufacturer,
+            string ComputerModel,
+            string ComputerProcessorNum,
+            string DiskManufacturer,
+            string DiskModel,
+            string RamSize,
             double ProcessorTimePercentMinimum,
             double ProcessorTimePercentMaximum,
             double ProcessorTimePercentAverage,
@@ -279,7 +290,7 @@ using System.Security.Principal;
             IntPtr TcpConnections
             )
         {
-            int argumentCount = 45;
+            int argumentCount = 56;
             bool status = true;
 
             if (IsEnabled(eventDescriptor.Level, eventDescriptor.Keywords))
@@ -292,140 +303,173 @@ using System.Security.Principal;
                 userDataPtr[1].DataPointer = (UInt64)(&Samples);
                 userDataPtr[1].Size = (uint)(sizeof(int)  );
 
-                userDataPtr[2].DataPointer = (UInt64)(&ProcessorTimePercentMinimum);
-                userDataPtr[2].Size = (uint)(sizeof(double)  );
+                userDataPtr[2].Size = (uint)(ProcessorDescription.Length + 1)*sizeof(char);
 
-                userDataPtr[3].DataPointer = (UInt64)(&ProcessorTimePercentMaximum);
-                userDataPtr[3].Size = (uint)(sizeof(double)  );
+                userDataPtr[3].Size = (uint)(ProcessorName.Length + 1)*sizeof(char);
 
-                userDataPtr[4].DataPointer = (UInt64)(&ProcessorTimePercentAverage);
-                userDataPtr[4].Size = (uint)(sizeof(double)  );
+                userDataPtr[4].Size = (uint)(ProcessorPhysicalCoreNum.Length + 1)*sizeof(char);
 
-                userDataPtr[5].DataPointer = (UInt64)(&WorkingSetMinimum);
-                userDataPtr[5].Size = (uint)(sizeof(long)  );
+                userDataPtr[5].Size = (uint)(ProcessorLogicalCoreNum.Length + 1)*sizeof(char);
 
-                userDataPtr[6].DataPointer = (UInt64)(&WorkingSetMaximum);
-                userDataPtr[6].Size = (uint)(sizeof(long)  );
+                userDataPtr[6].Size = (uint)(ProcessorCoreSpeed.Length + 1)*sizeof(char);
 
-                userDataPtr[7].DataPointer = (UInt64)(&WorkingSetAverage);
-                userDataPtr[7].Size = (uint)(sizeof(long)  );
+                userDataPtr[7].Size = (uint)(ComputerManufacturer.Length + 1)*sizeof(char);
 
-                userDataPtr[8].DataPointer = (UInt64)(&PrivateBytesMinimum);
-                userDataPtr[8].Size = (uint)(sizeof(long)  );
+                userDataPtr[8].Size = (uint)(ComputerModel.Length + 1)*sizeof(char);
 
-                userDataPtr[9].DataPointer = (UInt64)(&PrivateBytesMaximum);
-                userDataPtr[9].Size = (uint)(sizeof(long)  );
+                userDataPtr[9].Size = (uint)(ComputerProcessorNum.Length + 1)*sizeof(char);
 
-                userDataPtr[10].DataPointer = (UInt64)(&PrivateBytesAverage);
-                userDataPtr[10].Size = (uint)(sizeof(long)  );
+                userDataPtr[10].Size = (uint)(DiskManufacturer.Length + 1)*sizeof(char);
 
-                userDataPtr[11].DataPointer = (UInt64)(&DiskBytesReadTotal);
-                userDataPtr[11].Size = (uint)(sizeof(long)  );
+                userDataPtr[11].Size = (uint)(DiskModel.Length + 1)*sizeof(char);
 
-                userDataPtr[12].DataPointer = (UInt64)(&DiskBytesReadMinimum);
-                userDataPtr[12].Size = (uint)(sizeof(long)  );
+                userDataPtr[12].Size = (uint)(RamSize.Length + 1)*sizeof(char);
 
-                userDataPtr[13].DataPointer = (UInt64)(&DiskBytesReadMaximum);
-                userDataPtr[13].Size = (uint)(sizeof(long)  );
+                userDataPtr[13].DataPointer = (UInt64)(&ProcessorTimePercentMinimum);
+                userDataPtr[13].Size = (uint)(sizeof(double)  );
 
-                userDataPtr[14].DataPointer = (UInt64)(&DiskBytesReadAverage);
-                userDataPtr[14].Size = (uint)(sizeof(long)  );
+                userDataPtr[14].DataPointer = (UInt64)(&ProcessorTimePercentMaximum);
+                userDataPtr[14].Size = (uint)(sizeof(double)  );
 
-                userDataPtr[15].DataPointer = (UInt64)(&DiskBytesWrittenTotal);
-                userDataPtr[15].Size = (uint)(sizeof(long)  );
+                userDataPtr[15].DataPointer = (UInt64)(&ProcessorTimePercentAverage);
+                userDataPtr[15].Size = (uint)(sizeof(double)  );
 
-                userDataPtr[16].DataPointer = (UInt64)(&DiskBytesWrittenMinimum);
+                userDataPtr[16].DataPointer = (UInt64)(&WorkingSetMinimum);
                 userDataPtr[16].Size = (uint)(sizeof(long)  );
 
-                userDataPtr[17].DataPointer = (UInt64)(&DiskBytesWrittenMaximum);
+                userDataPtr[17].DataPointer = (UInt64)(&WorkingSetMaximum);
                 userDataPtr[17].Size = (uint)(sizeof(long)  );
 
-                userDataPtr[18].DataPointer = (UInt64)(&DiskBytesWrittenAverage);
+                userDataPtr[18].DataPointer = (UInt64)(&WorkingSetAverage);
                 userDataPtr[18].Size = (uint)(sizeof(long)  );
 
-                userDataPtr[19].DataPointer = (UInt64)(&DiskReadOperationTotal);
+                userDataPtr[19].DataPointer = (UInt64)(&PrivateBytesMinimum);
                 userDataPtr[19].Size = (uint)(sizeof(long)  );
 
-                userDataPtr[20].DataPointer = (UInt64)(&DiskReadOperationMinimum);
+                userDataPtr[20].DataPointer = (UInt64)(&PrivateBytesMaximum);
                 userDataPtr[20].Size = (uint)(sizeof(long)  );
 
-                userDataPtr[21].DataPointer = (UInt64)(&DiskReadOperationMaximum);
+                userDataPtr[21].DataPointer = (UInt64)(&PrivateBytesAverage);
                 userDataPtr[21].Size = (uint)(sizeof(long)  );
 
-                userDataPtr[22].DataPointer = (UInt64)(&DiskReadOperationAverage);
+                userDataPtr[22].DataPointer = (UInt64)(&DiskBytesReadTotal);
                 userDataPtr[22].Size = (uint)(sizeof(long)  );
 
-                userDataPtr[23].DataPointer = (UInt64)(&DiskWriteOperationTotal);
+                userDataPtr[23].DataPointer = (UInt64)(&DiskBytesReadMinimum);
                 userDataPtr[23].Size = (uint)(sizeof(long)  );
 
-                userDataPtr[24].DataPointer = (UInt64)(&DiskWriteOperationMinimum);
+                userDataPtr[24].DataPointer = (UInt64)(&DiskBytesReadMaximum);
                 userDataPtr[24].Size = (uint)(sizeof(long)  );
 
-                userDataPtr[25].DataPointer = (UInt64)(&DiskWriteOperationMaximum);
+                userDataPtr[25].DataPointer = (UInt64)(&DiskBytesReadAverage);
                 userDataPtr[25].Size = (uint)(sizeof(long)  );
 
-                userDataPtr[26].DataPointer = (UInt64)(&DiskWriteOperationAverage);
+                userDataPtr[26].DataPointer = (UInt64)(&DiskBytesWrittenTotal);
                 userDataPtr[26].Size = (uint)(sizeof(long)  );
 
-                userDataPtr[27].DataPointer = (UInt64)(&TcpBytesReceivedTotal);
+                userDataPtr[27].DataPointer = (UInt64)(&DiskBytesWrittenMinimum);
                 userDataPtr[27].Size = (uint)(sizeof(long)  );
 
-                userDataPtr[28].DataPointer = (UInt64)(&TcpBytesReceivedMinimum);
+                userDataPtr[28].DataPointer = (UInt64)(&DiskBytesWrittenMaximum);
                 userDataPtr[28].Size = (uint)(sizeof(long)  );
 
-                userDataPtr[29].DataPointer = (UInt64)(&TcpBytesReceivedMaximum);
+                userDataPtr[29].DataPointer = (UInt64)(&DiskBytesWrittenAverage);
                 userDataPtr[29].Size = (uint)(sizeof(long)  );
 
-                userDataPtr[30].DataPointer = (UInt64)(&TcpBytesReceivedAverage);
+                userDataPtr[30].DataPointer = (UInt64)(&DiskReadOperationTotal);
                 userDataPtr[30].Size = (uint)(sizeof(long)  );
 
-                userDataPtr[31].DataPointer = (UInt64)(&TcpBytesSentTotal);
+                userDataPtr[31].DataPointer = (UInt64)(&DiskReadOperationMinimum);
                 userDataPtr[31].Size = (uint)(sizeof(long)  );
 
-                userDataPtr[32].DataPointer = (UInt64)(&TcpBytesSentMinimum);
+                userDataPtr[32].DataPointer = (UInt64)(&DiskReadOperationMaximum);
                 userDataPtr[32].Size = (uint)(sizeof(long)  );
 
-                userDataPtr[33].DataPointer = (UInt64)(&TcpBytesSentMaximum);
+                userDataPtr[33].DataPointer = (UInt64)(&DiskReadOperationAverage);
                 userDataPtr[33].Size = (uint)(sizeof(long)  );
 
-                userDataPtr[34].DataPointer = (UInt64)(&TcpBytesSentAverage);
+                userDataPtr[34].DataPointer = (UInt64)(&DiskWriteOperationTotal);
                 userDataPtr[34].Size = (uint)(sizeof(long)  );
 
-                userDataPtr[35].DataPointer = (UInt64)(&UdpBytesReceivedTotal);
+                userDataPtr[35].DataPointer = (UInt64)(&DiskWriteOperationMinimum);
                 userDataPtr[35].Size = (uint)(sizeof(long)  );
 
-                userDataPtr[36].DataPointer = (UInt64)(&UdpBytesReceivedMinimum);
+                userDataPtr[36].DataPointer = (UInt64)(&DiskWriteOperationMaximum);
                 userDataPtr[36].Size = (uint)(sizeof(long)  );
 
-                userDataPtr[37].DataPointer = (UInt64)(&UdpBytesReceivedMaximum);
+                userDataPtr[37].DataPointer = (UInt64)(&DiskWriteOperationAverage);
                 userDataPtr[37].Size = (uint)(sizeof(long)  );
 
-                userDataPtr[38].DataPointer = (UInt64)(&UdpBytesReceivedAverage);
+                userDataPtr[38].DataPointer = (UInt64)(&TcpBytesReceivedTotal);
                 userDataPtr[38].Size = (uint)(sizeof(long)  );
 
-                userDataPtr[39].DataPointer = (UInt64)(&UdpBytesSentTotal);
+                userDataPtr[39].DataPointer = (UInt64)(&TcpBytesReceivedMinimum);
                 userDataPtr[39].Size = (uint)(sizeof(long)  );
 
-                userDataPtr[40].DataPointer = (UInt64)(&UdpBytesSentMinimum);
+                userDataPtr[40].DataPointer = (UInt64)(&TcpBytesReceivedMaximum);
                 userDataPtr[40].Size = (uint)(sizeof(long)  );
 
-                userDataPtr[41].DataPointer = (UInt64)(&UdpBytesSentMaximum);
+                userDataPtr[41].DataPointer = (UInt64)(&TcpBytesReceivedAverage);
                 userDataPtr[41].Size = (uint)(sizeof(long)  );
 
-                userDataPtr[42].DataPointer = (UInt64)(&UdpBytesSentAverage);
+                userDataPtr[42].DataPointer = (UInt64)(&TcpBytesSentTotal);
                 userDataPtr[42].Size = (uint)(sizeof(long)  );
 
-                userDataPtr[43].DataPointer = (UInt64)(&TcpConnectionsCount);
-                userDataPtr[43].Size = (uint)(sizeof(int)  );
+                userDataPtr[43].DataPointer = (UInt64)(&TcpBytesSentMinimum);
+                userDataPtr[43].Size = (uint)(sizeof(long)  );
 
-                userDataPtr[44].Size = (uint)(TcpConnections_Len_*TcpConnectionsCount);
+                userDataPtr[44].DataPointer = (UInt64)(&TcpBytesSentMaximum);
+                userDataPtr[44].Size = (uint)(sizeof(long)  );
 
-                fixed (char* a0 = Process)
+                userDataPtr[45].DataPointer = (UInt64)(&TcpBytesSentAverage);
+                userDataPtr[45].Size = (uint)(sizeof(long)  );
+
+                userDataPtr[46].DataPointer = (UInt64)(&UdpBytesReceivedTotal);
+                userDataPtr[46].Size = (uint)(sizeof(long)  );
+
+                userDataPtr[47].DataPointer = (UInt64)(&UdpBytesReceivedMinimum);
+                userDataPtr[47].Size = (uint)(sizeof(long)  );
+
+                userDataPtr[48].DataPointer = (UInt64)(&UdpBytesReceivedMaximum);
+                userDataPtr[48].Size = (uint)(sizeof(long)  );
+
+                userDataPtr[49].DataPointer = (UInt64)(&UdpBytesReceivedAverage);
+                userDataPtr[49].Size = (uint)(sizeof(long)  );
+
+                userDataPtr[50].DataPointer = (UInt64)(&UdpBytesSentTotal);
+                userDataPtr[50].Size = (uint)(sizeof(long)  );
+
+                userDataPtr[51].DataPointer = (UInt64)(&UdpBytesSentMinimum);
+                userDataPtr[51].Size = (uint)(sizeof(long)  );
+
+                userDataPtr[52].DataPointer = (UInt64)(&UdpBytesSentMaximum);
+                userDataPtr[52].Size = (uint)(sizeof(long)  );
+
+                userDataPtr[53].DataPointer = (UInt64)(&UdpBytesSentAverage);
+                userDataPtr[53].Size = (uint)(sizeof(long)  );
+
+                userDataPtr[54].DataPointer = (UInt64)(&TcpConnectionsCount);
+                userDataPtr[54].Size = (uint)(sizeof(int)  );
+
+                userDataPtr[55].Size = (uint)(TcpConnections_Len_*TcpConnectionsCount);
+
+                fixed (char* a0 = Process, a1 = ProcessorDescription, a2 = ProcessorName, a3 = ProcessorPhysicalCoreNum, a4 = ProcessorLogicalCoreNum, a5 = ProcessorCoreSpeed, a6 = ComputerManufacturer, a7 = ComputerModel, a8 = ComputerProcessorNum, a9 = DiskManufacturer, a10 = DiskModel, a11 = RamSize)
                 {
                     userDataPtr[0].DataPointer = (ulong)a0;
+                    userDataPtr[2].DataPointer = (ulong)a1;
+                    userDataPtr[3].DataPointer = (ulong)a2;
+                    userDataPtr[4].DataPointer = (ulong)a3;
+                    userDataPtr[5].DataPointer = (ulong)a4;
+                    userDataPtr[6].DataPointer = (ulong)a5;
+                    userDataPtr[7].DataPointer = (ulong)a6;
+                    userDataPtr[8].DataPointer = (ulong)a7;
+                    userDataPtr[9].DataPointer = (ulong)a8;
+                    userDataPtr[10].DataPointer = (ulong)a9;
+                    userDataPtr[11].DataPointer = (ulong)a10;
+                    userDataPtr[12].DataPointer = (ulong)a11;
 					byte* b0 = (byte*)TcpConnections;
                     {
-                        userDataPtr[44].DataPointer = (ulong)b0;
+                        userDataPtr[55].DataPointer = (ulong)b0;
                         status = WriteEvent(ref eventDescriptor, argumentCount, (IntPtr)(userData));
                     }
                 }
