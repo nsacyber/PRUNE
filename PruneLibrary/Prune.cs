@@ -19,11 +19,11 @@ namespace PruneLibrary
         private static readonly Dictionary<int, Counters> EtwCounters = new Dictionary<int, Counters>();
         private static int _etwUsers;
 
-        public static EventLog EventLog { get; private set; }
+        //public static EventLog EventLog { get; private set; }
 
-        public static void SetEventLog(EventLog eveLog) { 
-            EventLog = eveLog;
-        }
+        //public static void SetEventLog(EventLog eveLog) { 
+        //    EventLog = eveLog;
+        //}
 
         public static void HandleError(bool isService, int source, string message)
         {
@@ -32,11 +32,11 @@ namespace PruneLibrary
 				switch (source) {
 					case 0:
 						//Source of error is the library code
-						EventLog.WriteEntry("Handling error: " + message);
+						//EventLog.WriteEntry("Handling error: " + message);
 						PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteLIBRARY_ERROR_EVENT(message);
 						break;
 					case 1:
-						EventLog.WriteEntry("Handling error: " + message);
+						//EventLog.WriteEntry("Handling error: " + message);
 						PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteSERVICE_ERROR_EVENT(message);
 						//Souce of error is the service code
 						break;

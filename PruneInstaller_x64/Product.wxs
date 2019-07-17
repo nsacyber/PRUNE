@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
-     xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension">
+     xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension"
+     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
 
   <!--279D11D8-21D2-41FD-AC15-F66090EDBCB8-->
 
@@ -34,6 +35,12 @@
           <!-- Event Manifest Resource DLL-->
           <Component Id="EventDll" Guid="82cd29c5-5cde-4ecc-900d-3af1b1e93761" Win64="yes">
             <File Id="EventDllFile" Name="PruneEventManifest.dll" Source="PruneEventManifest.dll" KeyPath="yes" />
+          </Component>
+          <!-- EventManifest item, to register provider-->
+          <Component Id="PruneEventManifest">
+            <File Id="PruneEventManifestFile" Name="PruneEventManifest.man" Source="PruneEventManifest.man" KeyPath="yes">
+              <util:EventManifest MessageFile="C:\Program Files\Prune\PruneEventManifest.dll" ResourceFile="C:\Program Files\Prune\PruneEventManifest.dll" />
+            </File>
           </Component>
           <!-- JSON.NET library dependency-->
           <Component Id="JsonNet" Guid="F8F817E0-7FEF-4021-8AF4-FFD4DE6ED556" Win64="yes">
@@ -102,6 +109,7 @@
       <ComponentRef Id="JsonNet" />
       <ComponentRef Id="TraceEvent" />
       <ComponentRef Id="EventDll"/>
+      <ComponentRef Id="PruneEventManifest" />
     </Feature>
   </Product>
 </Wix>

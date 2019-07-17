@@ -371,3 +371,4 @@ PruneInstaller_x64/*.txt
 *.bin
 *.res
 *.rc
+PruneInstaller_x64/PruneEventManifest.man

@@ -27,7 +27,7 @@ using System.Security.Principal;
     public static class PRUNE_EVENT_PROVIDER
     {
         //
-        // Provider Prune-Event-Provider Event Count 12
+        // Provider Prune-Log Event Count 12
         //
 
         internal static EventProviderVersionTwo m_provider = new EventProviderVersionTwo(new Guid("75aa90da-302b-40fe-8760-80ed0b90d9d6"));
@@ -56,18 +56,18 @@ using System.Security.Principal;
         {
             unchecked
             {
-                PROCESS_REPORT_EVENT = new EventDescriptor(0x1, 0x0, 0x11, 0x4, 0x14, 0xd, (long)0x4000000000000000);
-                HOST_NAME_ERROR_EVENT = new EventDescriptor(0x2, 0x0, 0x10, 0x4, 0x15, 0xa, (long)0x8000000000000000);
-                FINISHED_EVENT = new EventDescriptor(0x3, 0x0, 0x10, 0x4, 0x16, 0xa, (long)0x8000000000000000);
-                CANNOT_GATHER_EVENT = new EventDescriptor(0x4, 0x0, 0x10, 0x4, 0x17, 0xa, (long)0x8000000000000000);
-                EXIT_EVENT_ERROR_EVENT = new EventDescriptor(0x5, 0x0, 0x10, 0x3, 0x18, 0xa, (long)0x8000000000000000);
-                SERVICE_STARTING_EVENT = new EventDescriptor(0x6, 0x0, 0x11, 0x4, 0x19, 0xb, (long)0x4000000000000000);
-                SERVICE_EXITING_EVENT = new EventDescriptor(0x7, 0x0, 0x10, 0x4, 0x1a, 0xb, (long)0x8000000000000000);
-                DISALLOWED_PROCESS_EVENT = new EventDescriptor(0x8, 0x0, 0x10, 0x4, 0x1b, 0xb, (long)0x8000000000000000);
-                CREATING_INSTANCE_EVENT = new EventDescriptor(0x9, 0x0, 0x10, 0x4, 0x1c, 0xb, (long)0x8000000000000000);
-                NO_WHITELIST_EVENT = new EventDescriptor(0xa, 0x0, 0x10, 0x4, 0x1d, 0xb, (long)0x8000000000000000);
-                LIBRARY_ERROR_EVENT = new EventDescriptor(0x14, 0x0, 0x10, 0x2, 0x1e, 0xa, (long)0x8000000000000000);
-                SERVICE_ERROR_EVENT = new EventDescriptor(0x15, 0x0, 0x10, 0x2, 0x1e, 0xb, (long)0x8000000000000000);
+                PROCESS_REPORT_EVENT = new EventDescriptor(0x1, 0x0, 0x14, 0x4, 0x14, 0xd, (long)0x8000000000000000);
+                HOST_NAME_ERROR_EVENT = new EventDescriptor(0x2, 0x0, 0x14, 0x4, 0x15, 0xa, (long)0x8000000000000000);
+                FINISHED_EVENT = new EventDescriptor(0x3, 0x0, 0x14, 0x4, 0x16, 0xa, (long)0x8000000000000000);
+                CANNOT_GATHER_EVENT = new EventDescriptor(0x4, 0x0, 0x14, 0x4, 0x17, 0xa, (long)0x8000000000000000);
+                EXIT_EVENT_ERROR_EVENT = new EventDescriptor(0x5, 0x0, 0x14, 0x3, 0x18, 0xa, (long)0x8000000000000000);
+                SERVICE_STARTING_EVENT = new EventDescriptor(0x6, 0x0, 0x14, 0x4, 0x19, 0xb, (long)0x8000000000000000);
+                SERVICE_EXITING_EVENT = new EventDescriptor(0x7, 0x0, 0x14, 0x4, 0x1a, 0xb, (long)0x8000000000000000);
+                DISALLOWED_PROCESS_EVENT = new EventDescriptor(0x8, 0x0, 0x14, 0x4, 0x1b, 0xb, (long)0x8000000000000000);
+                CREATING_INSTANCE_EVENT = new EventDescriptor(0x9, 0x0, 0x14, 0x4, 0x1c, 0xb, (long)0x8000000000000000);
+                NO_WHITELIST_EVENT = new EventDescriptor(0xa, 0x0, 0x14, 0x4, 0x1d, 0xb, (long)0x8000000000000000);
+                LIBRARY_ERROR_EVENT = new EventDescriptor(0x14, 0x0, 0x14, 0x2, 0x1e, 0xa, (long)0x8000000000000000);
+                SERVICE_ERROR_EVENT = new EventDescriptor(0x15, 0x0, 0x14, 0x2, 0x1e, 0xb, (long)0x8000000000000000);
             }
         }
 
@@ -80,7 +80,6 @@ using System.Security.Principal;
 
             if (!m_provider.IsEnabled())
             {
-				PruneLibrary.Prune.EventLog.WriteEntry("Not Enabled");
                 return true;
             }
 
@@ -425,10 +424,10 @@ using System.Security.Principal;
                 {
                     userDataPtr[0].DataPointer = (ulong)a0;
 					byte* b0 = (byte*)TcpConnections;
-                    
-                    userDataPtr[44].DataPointer = (ulong)b0;
-                    status = WriteEvent(ref eventDescriptor, argumentCount, (IntPtr)(userData));
-                    
+                    {
+                        userDataPtr[44].DataPointer = (ulong)b0;
+                        status = WriteEvent(ref eventDescriptor, argumentCount, (IntPtr)(userData));
+                    }
                 }
             }
 
@@ -443,11 +442,8 @@ using System.Security.Principal;
             )
         {
             if (IsEnabled(eventDescriptor.Level, eventDescriptor.Keywords)){
-				PruneLibrary.Prune.EventLog.WriteEntry("Is enabled, calling write event");
                 return WriteEvent(ref eventDescriptor, 0, IntPtr.Zero);
-            } else {
-				PruneLibrary.Prune.EventLog.WriteEntry("is Disabled, will not call WriteEvent");
-			}
+            }
 
             return true;
         }

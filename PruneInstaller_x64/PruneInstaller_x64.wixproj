@@ -42,6 +42,7 @@
     <Content Include="OSExtensions.dll" />
     <Content Include="Prune.exe" />
     <Content Include="PruneEventManifest.dll" />
+    <Content Include="PruneEventManifest.man" />
     <Content Include="PruneLibrary.dll" />
     <Content Include="PruneService.exe" />
     <Content Include="README.md" />
@@ -51,6 +52,10 @@
     <Content Include="whitelist.txt" />
   </ItemGroup>
   <ItemGroup>
+    <WixExtension Include="WixUtilExtension">
+      <HintPath>$(WixExtDir)\WixUtilExtension.dll</HintPath>
+      <Name>WixUtilExtension</Name>
+    </WixExtension>
     <WixExtension Include="WixNetFxExtension">
       <HintPath>$(WixExtDir)\WixNetFxExtension.dll</HintPath>
       <Name>WixNetFxExtension</Name>
