@@ -104,6 +104,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConnectionDataStruct.cs" />
+    <Compile Include="DiskDataStruct.cs" />
+    <Compile Include="ProcessorDataStruct.cs" />
     <Compile Include="PruneEventManifest.cs" />
     <Compile Include="PruneProcessInstance.cs" />
     <Compile Include="DataPoint.cs" />

@@ -17,7 +17,7 @@ namespace PruneService
         private const uint CacheIntervalDefault = 3600;
         private const uint MonitorIntervalDefault = 1;
         private const uint WhitelistIntervalDefault = 60;
-        private const uint ConfigIntervalDefault = 60;
+		private const uint ConfigIntervalDefault = 60;
 
         //File and directory paths
         private const string DirectoryPath = @"C:\ProgramData\Prune";
@@ -85,7 +85,10 @@ namespace PruneService
 				Prune.HandleError(true, 1, "Error initializing Prune instances\n" + e.Message + "\n" + e.Source);
             }
 
-            try
+			//Start the etw sesstion
+			Prune.StartEtwSession(true);
+
+			try
             {
                 //Check for old, unlogged files as the service starts
                 ReadOldFiles();
@@ -94,9 +97,6 @@ namespace PruneService
             {
 				Prune.HandleError(true, 1, "Error reading old files\n" + e.Message);
             }
-
-            //Start the etw sesstion
-            Prune.StartEtwSession(true);
 
             //create the timer for gathering data from the performance counters
             try

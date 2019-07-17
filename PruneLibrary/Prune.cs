@@ -21,16 +21,13 @@ namespace PruneLibrary
 		private static int _etwUsers;
 
 		//Hardware information
-		public static string ProcessorDescription { get; private set; }
-		public static string ProcessorName { get; private set; }
-		public static string ProcessorPhysicalCoreNum { get; private set; }
-		public static string ProcessorLogicalCoreNum { get; private set; }
-		public static string ProcessorCoreSpeed { get; private set; }
+		public static ProcessorDataStruct[] processorStructs { get; private set; }
+		//public static string Processors { get; private set; }
 		public static string ComputerManufacturer { get; private set; }
 		public static string ComputerModel { get; private set; }
 		public static string ComputerProcessorNum { get; private set; }
-		public static string DiskManufacturer { get; private set; }
-		public static string DiskModel { get; private set; }
+		public static DiskDataStruct[] diskStructs { get; private set; }
+		//public static string Disks { get; private set; }
 		public static string RamSize { get; private set; }
 
 		public static void HandleError(bool isService, int source, string message)
@@ -194,27 +191,64 @@ namespace PruneLibrary
 						computerSystem = new ManagementObjectSearcher("select * from Win32_ComputerSystem"),
 						disks = new ManagementObjectSearcher("select * from Win32_DiskDrive")) 
 					{
-						foreach(ManagementObject obj in processor.Get()) 
+						List<ProcessorDataStruct> processorList = new List<ProcessorDataStruct>();
+						//Processors = "";
+						//int processorCount = 1;
+						foreach (ManagementObject obj in processor.Get()) 
 						{
-							ProcessorDescription = obj["Description"].ToString().Trim();
-							ProcessorName = obj["Name"].ToString().Trim();
-							ProcessorPhysicalCoreNum = obj["NumberOfCores"].ToString().Trim();
-							ProcessorLogicalCoreNum = obj["NumberOfLogicalProcessors"].ToString().Trim();
-							ProcessorCoreSpeed = obj["MaxClockSpeed"].ToString().Trim();
+							string desc = obj["Description"].ToString().Trim();
+							string name = obj["Name"].ToString().Trim();
+							string physical = obj["NumberOfCores"].ToString().Trim();
+							string logical = obj["NumberOfLogicalProcessors"].ToString().Trim();
+
+							//Processor speed in GHz
+							string speed = (Convert.ToInt32(obj["MaxClockSpeed"].ToString().Trim())/1000).ToString() + " GHz";
+
+							//string temp = "Processor " + processorCount + ": " + desc + ", " + name + ", " + "Physical cores: " + physical + ", Logical cores: " + logical + ", Speed: " + speed + "\n";
+							//Processors += temp;
+							//processorCount++;
+							processorList.Add(new ProcessorDataStruct(desc, name, physical, logical, speed));
 						}
 
-						foreach(ManagementObject obj in computerSystem.Get()) 
+						if(processorList.Count > 0) {
+							processorStructs = processorList.ToArray();
+						} else {
+							//If for some reason we didn't find a processor, we create an empty struct to avoid null pointers later
+							processorStructs = new ProcessorDataStruct[1];
+							processorStructs[0] = new ProcessorDataStruct(0);
+						}
+						
+
+						foreach (ManagementObject obj in computerSystem.Get()) 
 						{
 							ComputerManufacturer = obj["Manufacturer"].ToString().Trim();
 							ComputerModel = obj["Model"].ToString().Trim();
 							ComputerProcessorNum = obj["NumberOfProcessors"].ToString().Trim();
-							RamSize = obj["TotalPhysicalMemory"].ToString().Trim();
+
+							//Size of Ram in GB
+							RamSize = (Convert.ToUInt64(obj["TotalPhysicalMemory"].ToString().Trim())/Convert.ToUInt64(Math.Pow(1024d,3d))).ToString() + " GB";
 						}
 
-						foreach(ManagementObject obj in disks.Get()) 
+						List<DiskDataStruct> diskList = new List<DiskDataStruct>();
+						//Disks = "";
+						//int diskCount = 1;
+						foreach (ManagementObject obj in disks.Get()) 
 						{
-							DiskManufacturer = obj["Manufacturer"].ToString().Trim();
-							DiskModel = obj["Model"].ToString().Trim();
+							string man = obj["Manufacturer"].ToString().Trim();
+							string model = obj["Model"].ToString().Trim();
+
+							diskList.Add(new DiskDataStruct(man, model));
+							//string temp = "Disk " + diskCount + ": " + man + ", " + model + "\n";
+							//Disks += temp;
+							//diskCount++;
+						}
+
+						if (diskList.Count > 0) {
+							diskStructs = diskList.ToArray();
+						} else {
+							//If for some reason we didn't find any disks, we need to create an empty one to prevent a null array later on
+							diskStructs = new DiskDataStruct[1];
+							diskStructs[0] = new DiskDataStruct(0);
 						}
 					}
 				} catch(Exception e) 
