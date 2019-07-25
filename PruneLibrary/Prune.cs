@@ -21,15 +21,40 @@ namespace PruneLibrary
 		private static int _etwUsers;
 
 		//Hardware information
-		[MarshalAs(UnmanagedType.LPArray)]
-		public static ProcessorDataStruct[] processorStructs;
-		//public static string Processors { get; private set; }
+		//public static string Proc1Description { get; private set; }
+		//public static string Proc1Name { get; private set; }
+		//public static string Proc1PhysCore { get; private set; }
+		//public static string Proc1LogiCore { get; private set; }
+		//public static string Proc1CoreSpeed { get; private set; }
+		//public static string Proc2Description { get; private set; }
+		//public static string Proc2Name { get; private set; }
+		//public static string Proc2PhysCore { get; private set; }
+		//public static string Proc2LogiCore { get; private set; }
+		//public static string Proc2CoreSpeed { get; private set; }
+		//public static string Proc3Description { get; private set; }
+		//public static string Proc3Name { get; private set; }
+		//public static string Proc3PhysCore { get; private set; }
+		//public static string Proc3LogiCore { get; private set; }
+		//public static string Proc3CoreSpeed { get; private set; }
+		//public static string Proc4Description { get; private set; }
+		//public static string Proc4Name { get; private set; }
+		//public static string Proc4PhysCore { get; private set; }
+		//public static string Proc4LogiCore { get; private set; }
+		//public static string Proc4CoreSpeed { get; private set; }
+		//public static string[] ProcessorDescriptions { get; private set; }
+		//public static string[] ProcessorNames { get; private set; }
+		//public static string[] ProcessorPhysicalCores { get; private set; }
+		//public static string[] ProcessorLogicalCores { get; private set; }
+		//public static string[] ProcessorCoreSpeeds { get; private set; }
+		public static string Processors { get; private set; }
 		public static string ComputerManufacturer { get; private set; }
 		public static string ComputerModel { get; private set; }
 		public static string ComputerProcessorNum { get; private set; }
-		[MarshalAs(UnmanagedType.LPArray)]
-		public static DiskDataStruct[] diskStructs;
-		//public static string Disks { get; private set; }
+		public static string Disks { get; private set; }
+		//public static string[] DiskManufaturers { get; private set; }
+		//public static string[] DiskModels { get; private set; }
+		//public static string Disk1Manufacturer { get; private set; }
+		//public static string Disk1Model { get; private set; }
 		public static string RamSize { get; private set; }
 
 		public static void HandleError(bool isService, int source, string message)
@@ -176,7 +201,7 @@ namespace PruneLibrary
                 }
                 catch (Exception e)
                 {
-                    HandleError(isService, 0, "Error initializing ETW Session\n" + e.Message);
+                    HandleError(isService, 0, "Error initializing ETW Session" + Environment.NewLine + e.Message);
                     return;
                 }
 
@@ -193,9 +218,9 @@ namespace PruneLibrary
 						computerSystem = new ManagementObjectSearcher("select * from Win32_ComputerSystem"),
 						disks = new ManagementObjectSearcher("select * from Win32_DiskDrive")) 
 					{
-						List<ProcessorDataStruct> processorList = new List<ProcessorDataStruct>();
-						//Processors = "";
-						//int processorCount = 1;
+
+						string procString = "No Processors";
+						int processorCount = 1;
 						foreach (ManagementObject obj in processor.Get()) 
 						{
 							string desc = obj["Description"].ToString().Trim();
@@ -204,22 +229,21 @@ namespace PruneLibrary
 							string logical = obj["NumberOfLogicalProcessors"].ToString().Trim();
 
 							//Processor speed in GHz
-							string speed = (Convert.ToInt32(obj["MaxClockSpeed"].ToString().Trim())/1000).ToString() + " GHz";
+							string speed = (Convert.ToInt32(obj["MaxClockSpeed"].ToString().Trim())/1000.0).ToString() + " GHz";
 
-							//string temp = "Processor " + processorCount + ": " + desc + ", " + name + ", " + "Physical cores: " + physical + ", Logical cores: " + logical + ", Speed: " + speed + "\n";
-							//Processors += temp;
-							//processorCount++;
-							processorList.Add(new ProcessorDataStruct(desc, name, physical, logical, speed));
+							string temp = "Processor " + processorCount + ": " + desc + ", " + name + ", " + "Physical cores " + physical + ", Logical cores " + logical + ", Speed " + speed + Environment.NewLine;
+							
+							if(processorCount == 1) {
+								procString = temp;
+							} else {
+								procString += temp;
+							}
+
+							processorCount++;
+							
 						}
 
-						if(processorList.Count > 0) {
-							processorStructs = processorList.ToArray();
-						} else {
-							//If for some reason we didn't find a processor, we create an empty struct to avoid null pointers later
-							processorStructs = new ProcessorDataStruct[1];
-							processorStructs[0] = new ProcessorDataStruct(0);
-						}
-						
+						Processors = procString;
 
 						foreach (ManagementObject obj in computerSystem.Get()) 
 						{
@@ -231,31 +255,29 @@ namespace PruneLibrary
 							RamSize = (Convert.ToUInt64(obj["TotalPhysicalMemory"].ToString().Trim())/Convert.ToUInt64(Math.Pow(1024d,3d))).ToString() + " GB";
 						}
 
-						List<DiskDataStruct> diskList = new List<DiskDataStruct>();
-						//Disks = "";
-						//int diskCount = 1;
+						int diskCount = 1;
+						string diskString = "No Disks";
 						foreach (ManagementObject obj in disks.Get()) 
 						{
 							string man = obj["Manufacturer"].ToString().Trim();
 							string model = obj["Model"].ToString().Trim();
 
-							diskList.Add(new DiskDataStruct(man, model));
-							//string temp = "Disk " + diskCount + ": " + man + ", " + model + "\n";
-							//Disks += temp;
-							//diskCount++;
+							string temp = "Disk " + diskCount + ": " + man + ", " + model + Environment.NewLine;
+
+							if (diskCount == 1) {
+								diskString = temp;
+							} else {
+								diskString += temp;
+							}
+
+							diskCount++;
 						}
 
-						if (diskList.Count > 0) {
-							diskStructs = diskList.ToArray();
-						} else {
-							//If for some reason we didn't find any disks, we need to create an empty one to prevent a null array later on
-							diskStructs = new DiskDataStruct[1];
-							diskStructs[0] = new DiskDataStruct(0);
-						}
+						Disks = diskString;
 					}
 				} catch(Exception e) 
 				{
-					HandleError(isService, 0, "Error while retrieving Hardware information: " + e.Message + "\n" + e.StackTrace);
+					HandleError(isService, 0, "Error while retrieving Hardware information: " + e.Message + Environment.NewLine + e.StackTrace);
 				}
 
                 try
@@ -460,7 +482,7 @@ namespace PruneLibrary
                 }
                 catch (Exception e)
                 {
-                    HandleError(isService, 0, "Error creating event handlers\n" + e.Message);
+                    HandleError(isService, 0, "Error creating event handlers" + Environment.NewLine + e.Message);
                 }
 
                 //Start the session in a thread
@@ -470,7 +492,7 @@ namespace PruneLibrary
                 }
                 catch (Exception e)
                 {
-                    HandleError(isService, 0, "Error starting ETW Thread\n\n" + e.Message + "\n\n" + e.StackTrace);
+                    HandleError(isService, 0, "Error starting ETW Thread\n" + Environment.NewLine + e.Message + "\n" + Environment.NewLine + e.StackTrace);
                 }
             }
         }

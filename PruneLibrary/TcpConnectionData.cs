@@ -93,5 +93,12 @@ namespace PruneLibrary
             if (MinOut == long.MaxValue)
                 MinOut = 0;
         }
+
+		public string ToString() {
+			return HostName + " -- " + Address + ": TotalBytesIn " + TotalIn + ", MaxBytesIn " + 
+				MaxIn + ", MinBytesIn " + MinIn + ", AvgBytesIn " + AverageIn + "," + Environment.NewLine + "TotalBytesOut " + 
+				TotalOut + ", MaxBytesOut " + MaxOut + ", MinBytesOut " + MinOut + ", AvgBytesOut " + 
+				AverageOut + Environment.NewLine + Environment.NewLine;
+		}
     }
 }
