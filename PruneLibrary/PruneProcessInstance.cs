@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Newtonsoft.Json;
@@ -596,6 +597,7 @@ namespace PruneLibrary
             {
 				//Create array of data structures used for the TCP connection information
 				ConnectionDataStruct[] connectionsStructs;
+
 				if (connectionData.Count != 0) {
 					connectionsStructs = new ConnectionDataStruct[connectionData.Count];
 				} else {
@@ -607,12 +609,11 @@ namespace PruneLibrary
 
 				//Create structures from the connectionData objects
 				//In the case where we created an empty one, this won't overwrite it
-				foreach(TcpConnectionData data in connectionData.Values) {
+				foreach (TcpConnectionData data in connectionData.Values) {
 					connectionsStructs[counter] = new ConnectionDataStruct(data);
 					counter++;
 				}
 
-				//Create byte arrays
 				int processorStructSize = Marshal.SizeOf(typeof(ProcessorDataStruct));
 				int diskStructSize = Marshal.SizeOf(typeof(DiskDataStruct));
 				int connectionStructSize = Marshal.SizeOf(typeof(ConnectionDataStruct));
@@ -621,66 +622,69 @@ namespace PruneLibrary
 				int diskByteArraySize = diskStructSize * Prune.diskStructs.Length;
 				int connectionByteArraySize = connectionStructSize * connectionsStructs.Length;
 
-				byte[] processorBytes = new byte[processorByteArraySize];
-				IntPtr[] processStructPointers = new IntPtr[Prune.processorStructs.Length];
-				int strCounter = 0;
-				foreach(ProcessorDataStruct str in Prune.processorStructs) {
-					Marshal.StructureToPtr(str, processStructPointers[strCounter], true);
-					strCounter++;
-				}
+				////byte[] processorBytes = new byte[processorByteArraySize];
+				////byte[] diskBytes = new byte[diskByteArraySize];
+				////byte[] connectionBytes = new byte[connectionByteArraySize];
 
-				byte[] diskBytes = new byte[diskByteArraySize];
-				IntPtr[] diskStructPointers = new IntPtr[Prune.diskStructs.Length];
-				strCounter = 0;
-				foreach (DiskDataStruct str in Prune.diskStructs) {
-					Marshal.StructureToPtr(str, diskStructPointers[strCounter], true);
-					strCounter++;
-				}
+				////IntPtr ptr = Marshal.AllocHGlobal(processorStructSize);
 
-				byte[] connectionBytes = new byte[connectionByteArraySize];
-				IntPtr[] connectionStructPointers = new IntPtr[connectionsStructs.Length];
-				strCounter = 0;
-				foreach(ConnectionDataStruct str in connectionsStructs) {
-					Marshal.StructureToPtr(str, connectionStructPointers[strCounter], true);
-					strCounter++;
-				}
+				////for (int i=0; i<Prune.processorStructs.Length; i++) {
+				////	Marshal.StructureToPtr(Prune.processorStructs[i], ptr, true);
+				////	Marshal.Copy(ptr, processorBytes, i * processorStructSize, processorStructSize);
+				////}
+
+				////for (int i = 0; i < Prune.diskStructs.Length; i++) {
+				////	Marshal.StructureToPtr(Prune.diskStructs[i], ptr, true);
+				////	Marshal.Copy(ptr, diskBytes, i * diskStructSize, diskStructSize);
+				////}
+
+				////for (int i = 0; i < connectionsStructs.Length; i++) {
+				////	Marshal.StructureToPtr(connectionsStructs[i], ptr, true);
+				////	Marshal.Copy(ptr, connectionBytes, i * connectionStructSize, connectionStructSize);
+				////}
+
+				////Marshal.FreeHGlobal(ptr);
 
 				//Get pointers to the arrays
-				IntPtr processorPointer = Marshal.AllocHGlobal(processorByteArraySize);
-				Marshal.Copy(processStructPointers, 0, processorPointer, processStructPointers.Length);
-				//Marshal.Copy(processorBytes, 0, processorPointer, processorByteArraySize);
-				IntPtr diskPointer = Marshal.AllocHGlobal(diskByteArraySize);
-				Marshal.Copy(diskStructPointers, 0, diskPointer, diskStructPointers.Length);
-				//Marshal.Copy(diskBytes, 0, diskPointer, diskByteArraySize);
-				IntPtr connectionsPointer = Marshal.AllocHGlobal(connectionByteArraySize);
-				Marshal.Copy(connectionStructPointers, 0, connectionsPointer, connectionStructPointers.Length);
-				//Marshal.Copy(connectionBytes, 0, connectionsPointer, connectionByteArraySize);
+				IntPtr processorPointer = Marshal.AllocHGlobal(processorStructSize);
+				IntPtr diskPointer = Marshal.AllocHGlobal(diskStructSize);
+				IntPtr connectionsPointer = Marshal.AllocHGlobal(connectionStructSize);
 
-				//call the event
-				bool returnVal = PruneEvents.PRUNE_EVENT_PROVIDER.EventWritePROCESS_REPORT_EVENT(WhitelistEntry + "_" + ProcessId,
-					dataPointCount, Convert.ToUInt32(Prune.processorStructs.Length), Prune.processorStructs.Length, processorPointer, Prune.ComputerManufacturer, Prune.ComputerModel,
-					Prune.ComputerProcessorNum, Convert.ToUInt32(Prune.diskStructs.Length), Prune.diskStructs.Length, diskPointer, Prune.RamSize, minCpu, maxCpu,
-					averageCpu, minWorking, maxWorking, averageWorking, minPriv, maxPriv, averagePriv, totalDiskReadBytes,
-					minDiskReadBytes, maxDiskReadBytes, averageDiskReadBytes, totalDiskWriteBytes, minDiskWriteBytes,
-					maxDiskWriteBytes, averageDiskWriteBytes, totalDiskReadOps, minDiskReadOps, maxDiskReadOps, averageDiskReadOps,
-					totalDiskWriteOps, minDiskWriteOps, maxDiskWriteOps, averageDiskWriteOps, totalTcpIn, minTcpIn, maxTcpIn,
-					averageTcpIn, totalTcpOut, minTcpOut, maxTcpOut, averageTcpOut, totalUdpIn, minUdpIn, maxUdpIn, averageUdpIn,
-					totalUdpOut, minUdpOut, maxUdpOut, averageUdpOut, Convert.ToUInt32(connectionsStructs.Length), connectionsStructs.Length, connectionsPointer);
+				Marshal.StructureToPtr(Prune.processorStructs[0], processorPointer, true);
+				Marshal.StructureToPtr(Prune.diskStructs[0], diskPointer, true);
+				Marshal.StructureToPtr(connectionsStructs[0], connectionsPointer, true);
 
-				//bool returnVal = PruneEvents.PRUNE_EVENT_PROVIDER.EventWritePROCESS_REPORT_EVENT(WhitelistEntry + "_" + ProcessId,
-				//	dataPointCount, Prune.Processors, Prune.ComputerManufacturer, Prune.ComputerModel,
-				//	Prune.ComputerProcessorNum, Prune.Disks, Prune.RamSize, minCpu, maxCpu,
-				//	averageCpu, minWorking, maxWorking, averageWorking, minPriv, maxPriv, averagePriv, totalDiskReadBytes,
-				//	minDiskReadBytes, maxDiskReadBytes, averageDiskReadBytes, totalDiskWriteBytes, minDiskWriteBytes,
-				//	maxDiskWriteBytes, averageDiskWriteBytes, totalDiskReadOps, minDiskReadOps, maxDiskReadOps, averageDiskReadOps,
-				//	totalDiskWriteOps, minDiskWriteOps, maxDiskWriteOps, averageDiskWriteOps, totalTcpIn, minTcpIn, maxTcpIn,
-				//	averageTcpIn, totalTcpOut, minTcpOut, maxTcpOut, averageTcpOut, totalUdpIn, minUdpIn, maxUdpIn, averageUdpIn,
-				//	totalUdpOut, minUdpOut, maxUdpOut, averageUdpOut, connectionData.Count, connectionsPointer);
+				////try {
+				////	Marshal.Copy(processorBytes, 0, processorPointer, processorByteArraySize);
+				////	Marshal.Copy(diskBytes, 0, diskPointer, diskByteArraySize);
+				////	Marshal.Copy(connectionBytes, 0, connectionsPointer, connectionByteArraySize);
+				////} catch(Exception e) {
+				////	Prune.HandleError(true, 0, "Error copying data from array to final pointer");
+				////	return;
+				////}
+
+				try {
+					//call the event
+					bool returnVal = PruneEvents.PRUNE_EVENT_PROVIDER.EventWritePROCESS_REPORT_EVENT(WhitelistEntry + "_" + ProcessId,
+						dataPointCount, Prune.ComputerManufacturer, Prune.ComputerModel,
+						Prune.ComputerProcessorNum, Prune.RamSize, minCpu, maxCpu,
+						averageCpu, minWorking, maxWorking, averageWorking, minPriv, maxPriv, averagePriv, totalDiskReadBytes,
+						minDiskReadBytes, maxDiskReadBytes, averageDiskReadBytes, totalDiskWriteBytes, minDiskWriteBytes,
+						maxDiskWriteBytes, averageDiskWriteBytes, totalDiskReadOps, minDiskReadOps, maxDiskReadOps, averageDiskReadOps,
+						totalDiskWriteOps, minDiskWriteOps, maxDiskWriteOps, averageDiskWriteOps, totalTcpIn, minTcpIn, maxTcpIn,
+						averageTcpIn, totalTcpOut, minTcpOut, maxTcpOut, averageTcpOut, totalUdpIn, minUdpIn, maxUdpIn, averageUdpIn,
+						totalUdpOut, minUdpOut, maxUdpOut, averageUdpOut, Convert.ToUInt32(Prune.processorStructs.Length), 
+						Convert.ToUInt32(Prune.processorStructs.Length), Convert.ToUInt32(connectionsStructs.Length),
+						processorStructSize, processorPointer, diskStructSize, diskPointer, connectionStructSize, connectionsPointer);
+				} catch (Exception e) {
+					Prune.HandleError(_isService, 0, "Error printing data report event\n" + e.Message);
+				}
 
 				//free the arrays
 				Marshal.FreeHGlobal(processorPointer);
 				Marshal.FreeHGlobal(diskPointer);
 				Marshal.FreeHGlobal(connectionsPointer);
+
 			}
             catch (Exception e)
             {

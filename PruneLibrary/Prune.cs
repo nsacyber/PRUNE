@@ -21,12 +21,14 @@ namespace PruneLibrary
 		private static int _etwUsers;
 
 		//Hardware information
-		public static ProcessorDataStruct[] processorStructs { get; private set; }
+		[MarshalAs(UnmanagedType.LPArray)]
+		public static ProcessorDataStruct[] processorStructs;
 		//public static string Processors { get; private set; }
 		public static string ComputerManufacturer { get; private set; }
 		public static string ComputerModel { get; private set; }
 		public static string ComputerProcessorNum { get; private set; }
-		public static DiskDataStruct[] diskStructs { get; private set; }
+		[MarshalAs(UnmanagedType.LPArray)]
+		public static DiskDataStruct[] diskStructs;
 		//public static string Disks { get; private set; }
 		public static string RamSize { get; private set; }
 

@@ -1,21 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace PruneLibrary {
-	public unsafe struct ConnectionDataStruct {
-		public fixed char ipAddress[40];
-		public fixed char domainName[51];
-		public long bytesSentTotal;
-		public long bytesSentMin;
-		public long bytesSentMax;
-		public long bytesSentAvg;
-		public long bytesRcvTotal;
-		public long bytesRcvMin;
-		public long bytesRcvMax;
-		public long bytesRcvAvg;
+	[StructLayout(LayoutKind.Sequential)]
+	public struct ConnectionDataStruct {
+		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 40)]
+		public string ipAddress;
+
+		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 30)]
+		public string domainName;
+
+		public Int64 bytesSentTotal;
+		public Int64 bytesSentMin;
+		public Int64 bytesSentMax;
+		public Int64 bytesSentAvg;
+		public Int64 bytesRcvTotal;
+		public Int64 bytesRcvMin;
+		public Int64 bytesRcvMax;
+		public Int64 bytesRcvAvg;
 
 		public ConnectionDataStruct(TcpConnectionData data) {
 			this.bytesSentTotal = data.TotalOut;
@@ -27,41 +33,13 @@ namespace PruneLibrary {
 			this.bytesRcvMax = data.MaxIn;
 			this.bytesRcvAvg = data.AverageIn;
 
-			fixed(char* ipArr = ipAddress, domainArr = domainName) {
-				for (int i = 0; i < 51; i++) {
-					domainArr[i] = (char)0;
-
-					if (i < 40) {
-						ipArr[i] = (char)0;
-					}
-				}
-
-				//Create copy size variables
-				int ipSize = data.Address.Length >= 39 ? 39 : data.Address.Length;
-				int nameSize = data.HostName.Length >= 50 ? 50 : data.HostName.Length;
-
-				//Copy description
-				for (int i = 0; i < nameSize; i++) {
-					domainArr[i] = data.HostName[i];
-				}
-
-				for (int i = 0; i < ipSize; i++) {
-					ipArr[i] = data.Address[i];
-				}
-			}
+			this.ipAddress = data.Address;
+			this.domainName = data.HostName;
 		}
 
 		public ConnectionDataStruct(int x) {
-			fixed (char* ipArr = ipAddress, domainArr = domainName) {
-				for (int i = 0; i < 51; i++) {
-					domainArr[i] = (char)0;
-
-					if (i < 40) {
-						ipArr[i] = (char)0;
-					}
-				}
-			}
-
+			this.ipAddress = "";
+			this.domainName = "";
 			this.bytesSentTotal = 0;
 			this.bytesSentMin = 0;
 			this.bytesSentMax = 0;
