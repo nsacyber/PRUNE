@@ -8,18 +8,56 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Management;
 
 namespace PruneLibrary
 {
-    //A static class used for general Prune static methods
-    public static class Prune
-    {
-        //ETW
-        private static TraceEventSession _traceSession;
-        private static readonly Dictionary<int, Counters> EtwCounters = new Dictionary<int, Counters>();
-        private static int _etwUsers;
+	//A static class used for general Prune static methods
+	public static class Prune {
 
-        public static void HandleError(bool isService, int source, string message)
+		//ETW
+		private static TraceEventSession _traceSession;
+		private static readonly Dictionary<int, Counters> EtwCounters = new Dictionary<int, Counters>();
+		private static int _etwUsers;
+
+		//Hardware information
+		//public static string Proc1Description { get; private set; }
+		//public static string Proc1Name { get; private set; }
+		//public static string Proc1PhysCore { get; private set; }
+		//public static string Proc1LogiCore { get; private set; }
+		//public static string Proc1CoreSpeed { get; private set; }
+		//public static string Proc2Description { get; private set; }
+		//public static string Proc2Name { get; private set; }
+		//public static string Proc2PhysCore { get; private set; }
+		//public static string Proc2LogiCore { get; private set; }
+		//public static string Proc2CoreSpeed { get; private set; }
+		//public static string Proc3Description { get; private set; }
+		//public static string Proc3Name { get; private set; }
+		//public static string Proc3PhysCore { get; private set; }
+		//public static string Proc3LogiCore { get; private set; }
+		//public static string Proc3CoreSpeed { get; private set; }
+		//public static string Proc4Description { get; private set; }
+		//public static string Proc4Name { get; private set; }
+		//public static string Proc4PhysCore { get; private set; }
+		//public static string Proc4LogiCore { get; private set; }
+		//public static string Proc4CoreSpeed { get; private set; }
+		//public static string[] ProcessorDescriptions { get; private set; }
+		//public static string[] ProcessorNames { get; private set; }
+		//public static string[] ProcessorPhysicalCores { get; private set; }
+		//public static string[] ProcessorLogicalCores { get; private set; }
+		//public static string[] ProcessorCoreSpeeds { get; private set; }
+		public static string Processors { get; private set; }
+		public static string ComputerManufacturer { get; private set; }
+		public static string ComputerModel { get; private set; }
+		public static string ComputerProcessorNum { get; private set; }
+		public static string Disks { get; private set; }
+		//public static string[] DiskManufaturers { get; private set; }
+		//public static string[] DiskModels { get; private set; }
+		//public static string Disk1Manufacturer { get; private set; }
+		//public static string Disk1Model { get; private set; }
+		public static string RamSize { get; private set; }
+
+		public static void HandleError(bool isService, int source, string message)
         {
             if (isService)
             {
@@ -43,21 +81,24 @@ namespace PruneLibrary
         //Given a process id, get the specific instance name it is ties to
         public static string GetInstanceNameForProcessId(int processId)
         {
-            var process = Process.GetProcessById(processId);
-            string processName = Path.GetFileNameWithoutExtension(process.ProcessName);
+			string[] instances = null;
 
-            PerformanceCounterCategory cat = new PerformanceCounterCategory("Process");
-            string[] instances = cat.GetInstanceNames().Where(inst => inst.StartsWith(processName)).ToArray();
+			var process = Process.GetProcessById(processId);
+			string processName = Path.GetFileNameWithoutExtension(process.ProcessName);
+
+			PerformanceCounterCategory cat = new PerformanceCounterCategory("Process");
+			instances = cat.GetInstanceNames().Where(inst => inst.StartsWith(processName)).ToArray();
+
 
             foreach (string instance in instances)
             {
                 using (PerformanceCounter cnt = new PerformanceCounter("Process", "ID Process", instance, true))
                 {
-                    int val = (int)cnt.RawValue;
-                    if (val == processId)
-                    {
-                        return instance;
-                    }
+					int val = (int)cnt.RawValue;
+					if (val == processId)
+					{
+						return instance;
+					}
                 }
             }
 
@@ -158,16 +199,15 @@ namespace PruneLibrary
                     _traceSession = new TraceEventSession(etwSessionName);
 
                     _traceSession.EnableKernelProvider(KernelTraceEventParser.Keywords.NetworkTCPIP |
-                                                      KernelTraceEventParser.Keywords.DiskIO);
+                                                      KernelTraceEventParser.Keywords.DiskIO | 
+													  KernelTraceEventParser.Keywords.Memory);
 
                 }
                 catch (Exception e)
                 {
-                    HandleError(isService, 0, "Error initializing ETW Session\n" + e.Message);
+                    HandleError(isService, 0, "Error initializing ETW Session" + Environment.NewLine + e.Message);
                     return;
                 }
-
-
 
                 if (TraceEventSession.IsElevated() != true)
                 {
@@ -176,8 +216,96 @@ namespace PruneLibrary
                     return;
                 }
 
+				try 
+				{
+					using (ManagementObjectSearcher processor = new ManagementObjectSearcher("select * from Win32_Processor"),
+						computerSystem = new ManagementObjectSearcher("select * from Win32_ComputerSystem"),
+						disks = new ManagementObjectSearcher("select * from Win32_DiskDrive")) 
+					{
+
+						string procString = "No Processors";
+						int processorCount = 1;
+						foreach (ManagementObject obj in processor.Get()) 
+						{
+							string desc = obj["Description"].ToString().Trim();
+							string name = obj["Name"].ToString().Trim();
+							string physical = obj["NumberOfCores"].ToString().Trim();
+							string logical = obj["NumberOfLogicalProcessors"].ToString().Trim();
+
+							//Processor speed in GHz
+							string speed = (Convert.ToInt32(obj["MaxClockSpeed"].ToString().Trim())/1000.0).ToString() + " GHz";
+
+							string temp = "Processor " + processorCount + ": " + desc + ", " + name + ", " + "Physical cores " + physical + ", Logical cores " + logical + ", Speed " + speed + Environment.NewLine;
+							
+							if(processorCount == 1) {
+								procString = temp;
+							} else {
+								procString += temp;
+							}
+
+							processorCount++;
+							
+						}
+
+						Processors = procString;
+
+						foreach (ManagementObject obj in computerSystem.Get()) 
+						{
+							ComputerManufacturer = obj["Manufacturer"].ToString().Trim();
+							ComputerModel = obj["Model"].ToString().Trim();
+							ComputerProcessorNum = obj["NumberOfProcessors"].ToString().Trim();
+
+							//Size of Ram in GB
+							RamSize = (Convert.ToUInt64(obj["TotalPhysicalMemory"].ToString().Trim())/Convert.ToUInt64(Math.Pow(1024d,3d))).ToString() + " GB";
+						}
+
+						int diskCount = 1;
+						string diskString = "No Disks";
+						foreach (ManagementObject obj in disks.Get()) 
+						{
+							string man = obj["Manufacturer"].ToString().Trim();
+							string model = obj["Model"].ToString().Trim();
+
+							string temp = "Disk " + diskCount + ": " + man + ", " + model + Environment.NewLine;
+
+							if (diskCount == 1) {
+								diskString = temp;
+							} else {
+								diskString += temp;
+							}
+
+							diskCount++;
+						}
+
+						Disks = diskString;
+					}
+				} catch(Exception e) 
+				{
+					HandleError(isService, 0, "Error while retrieving Hardware information: " + e.Message + Environment.NewLine + e.StackTrace);
+				}
+
                 try
                 {
+
+					//Handle memory Info
+					_traceSession.Source.Kernel.MemoryProcessMemInfo += data => 
+					{
+						lock (EtwCounters) 
+						{
+							foreach (KeyValuePair<int, Counters> entry in EtwCounters) 
+							{
+								if (data.ProcessID == entry.Key) 
+								{
+									Microsoft.Diagnostics.Tracing.Parsers.Kernel.MemoryProcessMemInfoValues values = data.Values(0);
+
+									entry.Value.WorkingBytes = values.WorkingSetPageCount * Environment.SystemPageSize;
+									entry.Value.PrivateBytes = values.PrivateWorkingSetPageCount * Environment.SystemPageSize;
+
+								}
+							}
+						}
+					};
+
                     //Handle and Disk I/O read operation
                     _traceSession.Source.Kernel.DiskIORead += data =>
                     {
@@ -378,7 +506,7 @@ namespace PruneLibrary
                 }
                 catch (Exception e)
                 {
-                    HandleError(isService, 0, "Error creating event handlers\n" + e.Message);
+                    HandleError(isService, 0, "Error creating event handlers" + Environment.NewLine + e.Message);
                 }
 
                 //Start the session in a thread
@@ -388,7 +516,7 @@ namespace PruneLibrary
                 }
                 catch (Exception e)
                 {
-                    HandleError(isService, 0, "Error starting ETW Thread\n\n" + e.Message + "\n\n" + e.StackTrace);
+                    HandleError(isService, 0, "Error starting ETW Thread\n" + Environment.NewLine + e.Message + "\n" + Environment.NewLine + e.StackTrace);
                 }
             }
         }
@@ -459,6 +587,8 @@ namespace PruneLibrary
             public long DiskWriteOperations;
             public long TcpReceived;
             public long TcpSent;
+			public long WorkingBytes;
+			public long PrivateBytes;
 
             public Dictionary<string, long> ConnectionsSent = new Dictionary<string, long>();
             public Dictionary<string, long> ConnectionsReceived = new Dictionary<string, long>();
@@ -474,6 +604,8 @@ namespace PruneLibrary
                 DiskWriteOperations = 0;
                 TcpReceived = 0;
                 TcpSent = 0;
+				WorkingBytes = 0;
+				PrivateBytes = 0;
             }
 
             //Copy constructor
@@ -487,6 +619,9 @@ namespace PruneLibrary
                 DiskWriteOperations = copyCounters.DiskWriteOperations;
                 TcpReceived = copyCounters.TcpReceived;
                 TcpSent = copyCounters.TcpSent;
+				WorkingBytes = copyCounters.WorkingBytes;
+				PrivateBytes = copyCounters.PrivateBytes;
+
                 ConnectionsSent = new Dictionary<string, long>(copyCounters.ConnectionsSent);
                 ConnectionsReceived = new Dictionary<string, long>(copyCounters.ConnectionsReceived);
             }
@@ -502,6 +637,8 @@ namespace PruneLibrary
                 DiskReadBytes = 0;
                 DiskWriteBytes = 0;
                 DiskWriteOperations = 0;
+				WorkingBytes = 0;
+				PrivateBytes = 0;
 
                 ConnectionsSent.Clear();
                 ConnectionsReceived.Clear();
