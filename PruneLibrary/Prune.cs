@@ -81,21 +81,24 @@ namespace PruneLibrary
         //Given a process id, get the specific instance name it is ties to
         public static string GetInstanceNameForProcessId(int processId)
         {
-            var process = Process.GetProcessById(processId);
-            string processName = Path.GetFileNameWithoutExtension(process.ProcessName);
+			string[] instances = null;
 
-            PerformanceCounterCategory cat = new PerformanceCounterCategory("Process");
-            string[] instances = cat.GetInstanceNames().Where(inst => inst.StartsWith(processName)).ToArray();
+			var process = Process.GetProcessById(processId);
+			string processName = Path.GetFileNameWithoutExtension(process.ProcessName);
+
+			PerformanceCounterCategory cat = new PerformanceCounterCategory("Process");
+			instances = cat.GetInstanceNames().Where(inst => inst.StartsWith(processName)).ToArray();
+
 
             foreach (string instance in instances)
             {
                 using (PerformanceCounter cnt = new PerformanceCounter("Process", "ID Process", instance, true))
                 {
-                    int val = (int)cnt.RawValue;
-                    if (val == processId)
-                    {
-                        return instance;
-                    }
+					int val = (int)cnt.RawValue;
+					if (val == processId)
+					{
+						return instance;
+					}
                 }
             }
 
@@ -196,7 +199,8 @@ namespace PruneLibrary
                     _traceSession = new TraceEventSession(etwSessionName);
 
                     _traceSession.EnableKernelProvider(KernelTraceEventParser.Keywords.NetworkTCPIP |
-                                                      KernelTraceEventParser.Keywords.DiskIO);
+                                                      KernelTraceEventParser.Keywords.DiskIO | 
+													  KernelTraceEventParser.Keywords.Memory);
 
                 }
                 catch (Exception e)
@@ -282,6 +286,26 @@ namespace PruneLibrary
 
                 try
                 {
+
+					//Handle memory Info
+					_traceSession.Source.Kernel.MemoryProcessMemInfo += data => 
+					{
+						lock (EtwCounters) 
+						{
+							foreach (KeyValuePair<int, Counters> entry in EtwCounters) 
+							{
+								if (data.ProcessID == entry.Key) 
+								{
+									Microsoft.Diagnostics.Tracing.Parsers.Kernel.MemoryProcessMemInfoValues values = data.Values(0);
+
+									entry.Value.WorkingBytes = values.WorkingSetPageCount * Environment.SystemPageSize;
+									entry.Value.PrivateBytes = values.PrivateWorkingSetPageCount * Environment.SystemPageSize;
+
+								}
+							}
+						}
+					};
+
                     //Handle and Disk I/O read operation
                     _traceSession.Source.Kernel.DiskIORead += data =>
                     {
@@ -563,6 +587,8 @@ namespace PruneLibrary
             public long DiskWriteOperations;
             public long TcpReceived;
             public long TcpSent;
+			public long WorkingBytes;
+			public long PrivateBytes;
 
             public Dictionary<string, long> ConnectionsSent = new Dictionary<string, long>();
             public Dictionary<string, long> ConnectionsReceived = new Dictionary<string, long>();
@@ -578,6 +604,8 @@ namespace PruneLibrary
                 DiskWriteOperations = 0;
                 TcpReceived = 0;
                 TcpSent = 0;
+				WorkingBytes = 0;
+				PrivateBytes = 0;
             }
 
             //Copy constructor
@@ -591,6 +619,9 @@ namespace PruneLibrary
                 DiskWriteOperations = copyCounters.DiskWriteOperations;
                 TcpReceived = copyCounters.TcpReceived;
                 TcpSent = copyCounters.TcpSent;
+				WorkingBytes = copyCounters.WorkingBytes;
+				PrivateBytes = copyCounters.PrivateBytes;
+
                 ConnectionsSent = new Dictionary<string, long>(copyCounters.ConnectionsSent);
                 ConnectionsReceived = new Dictionary<string, long>(copyCounters.ConnectionsReceived);
             }
@@ -606,6 +637,8 @@ namespace PruneLibrary
                 DiskReadBytes = 0;
                 DiskWriteBytes = 0;
                 DiskWriteOperations = 0;
+				WorkingBytes = 0;
+				PrivateBytes = 0;
 
                 ConnectionsSent.Clear();
                 ConnectionsReceived.Clear();

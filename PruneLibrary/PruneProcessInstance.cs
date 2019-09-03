@@ -199,7 +199,7 @@ namespace PruneLibrary
             else
             {
                 //The procName was null or empty, so set them all to null
-                NullPerformanceCounters();
+				FinishMonitoring();
             }
         }
 
@@ -641,6 +641,7 @@ namespace PruneLibrary
             NullPerformanceCounters();
             DumpCache();
             LogDataFromCacheFiles();
+			this.ProcessFinished = true;
         }
 
         //The service is stopping, so we need to dump the current cache to a file
@@ -687,11 +688,31 @@ namespace PruneLibrary
 
             }
 
+			if(_cpuPc == null || _privBytesPc == null || _workingSetPc == null) {
+				//The perf counters are null, so we need to try to reassign them. They may have been nulled because another instance with the same name closed and broke things
+				//If the process really did exit, then they will remain null after this call
+				SetPerfCounters();
+			}
+
             //add the data inside of a DataPoint object
             //The Cpu value is divided by the total cpu threshold to convert it to a percent out of 100, where 100% is total utilization of all processor cores
             //Only do this if all of the Perf Counters are initialized properly
             if (_cpuPc != null && _privBytesPc != null && _workingSetPc != null)
             {
+				try {
+					if (_cpuPc.InstanceName.CompareTo(Prune.GetInstanceNameForProcessId(this.ProcessId)) != 0) {
+						//The PID we are monitoring exists but does not match our the instance name used by the perf counters
+						//	Therefore, we must reset them so they are correct. Nulling them will skip this data gathering but allow
+						//	us to reset them on the next data call
+						NullPerformanceCounters();
+					}
+				} catch (Exception e) {
+					//This happens if the current pid we are monitoring no longer exists, so we tell this instance to close and null the perf counters on all
+					//	other processes that share the same name to prevent instance name confusion and errors
+					FinishMonitoring();
+					return;
+				}
+
                 double cpuAdjusted;
                 double privValue;
                 double workingValue;
@@ -709,7 +730,7 @@ namespace PruneLibrary
 						PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteCANNOT_GATHER_EVENT(WhitelistEntry + "_" + ProcessId);
                     }
 
-                    NullPerformanceCounters();
+					FinishMonitoring();
                     return;
                 }
 

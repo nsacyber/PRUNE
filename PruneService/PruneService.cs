@@ -534,13 +534,14 @@ namespace PruneService
 
                                 if (processName.Contains("module=") || processName.Contains("Module="))
                                 {
-                                    //Split 'module:' off, then trim white space 
-                                    string moduleName = processName.Split('.')[0].Trim();
-                                    string moduleFile = processName.Split('=')[1].Trim();
+                                    //Split 'module=' off, then trim white space 
+                                    string moduleName = processName.Split('.')[0].Trim(); //module=test.dll -> module=test
+                                    string moduleFile = processName.Split('=')[1].Trim(); //module=test.dll -> test.dll
 
                                     if (_processIdToWhitelistEntry.ContainsValue(moduleName))
                                     {
                                         programFoundInWhitelist[moduleName] = true;
+										//TODO: Continue here? If it is already in the list, we can skip this
                                     }
 
                                     foreach (Process proc in runningProcesses)
