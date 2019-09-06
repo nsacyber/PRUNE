@@ -536,7 +536,17 @@ namespace PruneService
                                 {
                                     //Split 'module=' off, then trim white space 
                                     string moduleName = processName.Split('.')[0].Trim(); //module=test.dll -> module=test
-                                    string moduleFile = processName.Split('=')[1].Trim(); //module=test.dll -> test.dll
+                                    string moduleFileTemp = processName.Split('=')[1].Trim(); //module=test.dll -> test.dll
+									string moduleFile = null;
+									string moduleProcess = null;
+
+									if(moduleFileTemp.Contains(",")) {
+										string[] moduleTempSplit = moduleFileTemp.Split(','); //module=test.dll,svchost -> test.dll,svchost
+										moduleFile = moduleTempSplit[0].Trim(); //module=test.dll,svchost -> test.dll
+										moduleProcess = moduleTempSplit[1].Trim(); //module=test.dll,svchost -> svchost
+									} else {
+										moduleFile = moduleFileTemp;
+									}
 
                                     if (_processIdToWhitelistEntry.ContainsValue(moduleName))
                                     {
@@ -549,37 +559,36 @@ namespace PruneService
                                         //ensure we don't already monitor this process and that this process is not the system or idle process
                                         if (proc.Id != 4 && proc.Id != 0 && !_processIdToWhitelistEntry.ContainsKey(proc.Id))
                                         {
-                                            try
-                                            {
-                                                //collect the modules from for the process
-                                                List<Prune.Module> moduleList =
-                                                    Prune.NativeMethods.CollectModules(proc);
+											if (moduleProcess == null || moduleProcess == proc.ProcessName) {
+												try {
+													//collect the modules from for the process
+													List<Prune.Module> moduleList =
+														Prune.NativeMethods.CollectModules(proc);
 
-                                                foreach (Prune.Module module in moduleList)
-                                                {
-                                                    //Check if this module is the one we are looking for
-                                                    if (module.ModuleName.Equals(moduleFile,
-                                                        StringComparison.OrdinalIgnoreCase))
-                                                    {
-                                                        //It is, so add a new instances and log that it was created
-                                                        newInstances.Add(proc.Id, new PruneProcessInstance(true,
-                                                            proc.Id,
-                                                            moduleName, _writeCacheInterval, _logInterval, DirectoryPath));
-                                                        _processIdToWhitelistEntry.Add(proc.Id, moduleName);
-														PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteCREATING_INSTANCE_EVENT(moduleName + "_" + proc.Id);
+													foreach (Prune.Module module in moduleList) {
+														//Check if this module is the one we are looking for
+														if (module.ModuleName.Equals(moduleFile,
+															StringComparison.OrdinalIgnoreCase)) {
+															//It is, so add a new instances and log that it was created
+															newInstances.Add(proc.Id, new PruneProcessInstance(true,
+																proc.Id,
+																moduleName, _writeCacheInterval, _logInterval, DirectoryPath));
+															_processIdToWhitelistEntry.Add(proc.Id, moduleName);
+															PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteCREATING_INSTANCE_EVENT(moduleName + "_" + proc.Id);
 
-                                                        //We don't need to look at the rest of the modules
-                                                        break;
-                                                    }
-                                                }
-                                            }
-                                            catch
-                                            {
-                                                //If we fail to get any modules for some reason, we need to keep going
-                                                //We also don't need to report the error, because this will happen any time we try for a protected processes,
-                                                //  which may be often
-                                                continue;
-                                            }
+															//We don't need to look at the rest of the modules
+															break;
+														}
+													}
+												} catch {
+													//If we fail to get any modules for some reason, we need to keep going
+													//We also don't need to report the error, because this will happen any time we try for a protected processes,
+													//  which may be often
+													continue;
+												}
+											} else {
+
+											}
                                         }
                                     }
                                 }
