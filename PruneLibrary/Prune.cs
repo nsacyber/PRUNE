@@ -112,7 +112,7 @@ namespace PruneLibrary
             {
                 return Process.GetProcessById(procId).ProcessName;
             }
-            catch
+            catch (Exception)
             {
                 return null;
             }
@@ -424,6 +424,16 @@ namespace PruneLibrary
                                     {
                                         entry.Value.ConnectionsSent.Add(addr, data.size);
                                     }
+
+									//Tally number of times we have a connection
+									if(entry.Value.ConnectionsSentCount.ContainsKey(addr)) 
+									{
+										entry.Value.ConnectionsSentCount[addr] += 1;
+									} 
+									else 
+									{
+										entry.Value.ConnectionsSentCount.Add(addr, 1);
+									}
                                 }
                             }
                         }
@@ -449,7 +459,17 @@ namespace PruneLibrary
                                     {
                                         entry.Value.ConnectionsSent.Add(addr, data.size);
                                     }
-                                }
+
+									//Tally number of times we have a connection
+									if (entry.Value.ConnectionsSentCount.ContainsKey(addr)) 
+									{
+										entry.Value.ConnectionsSentCount[addr] += 1;
+									} 
+									else 
+									{
+										entry.Value.ConnectionsSentCount.Add(addr, 1);
+									}
+								}
                             }
                         }
                     };
@@ -474,7 +494,17 @@ namespace PruneLibrary
                                     {
                                         entry.Value.ConnectionsReceived.Add(addr, data.size);
                                     }
-                                }
+
+									//Tally number of times we have a connection
+									if (entry.Value.ConnectionsReceivedCount.ContainsKey(addr)) 
+									{
+										entry.Value.ConnectionsReceivedCount[addr] += 1;
+									} 
+									else 
+									{
+										entry.Value.ConnectionsReceivedCount.Add(addr, 1);
+									}
+								}
                             }
                         }
                     };
@@ -494,12 +524,19 @@ namespace PruneLibrary
                                     if (entry.Value.ConnectionsReceived.ContainsKey(addr))
                                     {
                                         entry.Value.ConnectionsReceived[addr] += data.size;
-                                    }
+									}
                                     else
                                     {
                                         entry.Value.ConnectionsReceived.Add(addr, data.size);
-                                    }
-                                }
+									}
+
+									//Tally number of times we have a connection
+									if (entry.Value.ConnectionsReceivedCount.ContainsKey(addr)) {
+										entry.Value.ConnectionsReceivedCount[addr] += 1;
+									} else {
+										entry.Value.ConnectionsReceivedCount.Add(addr, 1);
+									}
+								}
                             }
                         }
                     };
@@ -533,8 +570,9 @@ namespace PruneLibrary
                     counterCopy = new Counters(EtwCounters[procId]);
                     EtwCounters[procId].ResetCounters();
                 }
-                catch (KeyNotFoundException)
+                catch (KeyNotFoundException e)
                 {
+					HandleError(true, 0, "Error Getting ETW Data for a process " + e.Message);
                     counterCopy = null;
                 }
             }
@@ -591,7 +629,9 @@ namespace PruneLibrary
 			public long PrivateBytes;
 
             public Dictionary<string, long> ConnectionsSent = new Dictionary<string, long>();
+			public Dictionary<string, long> ConnectionsSentCount = new Dictionary<string, long>();
             public Dictionary<string, long> ConnectionsReceived = new Dictionary<string, long>();
+			public Dictionary<string, long> ConnectionsReceivedCount = new Dictionary<string, long>();
 
             //Default constructor initializes all values as 0
             public Counters()
@@ -623,7 +663,9 @@ namespace PruneLibrary
 				PrivateBytes = copyCounters.PrivateBytes;
 
                 ConnectionsSent = new Dictionary<string, long>(copyCounters.ConnectionsSent);
+				ConnectionsSentCount = new Dictionary<string, long>(copyCounters.ConnectionsSentCount);
                 ConnectionsReceived = new Dictionary<string, long>(copyCounters.ConnectionsReceived);
+				ConnectionsReceivedCount = new Dictionary<string, long>(copyCounters.ConnectionsReceivedCount);
             }
 
             //Reset all values to 0 and clear out the connection information
@@ -641,7 +683,9 @@ namespace PruneLibrary
 				PrivateBytes = 0;
 
                 ConnectionsSent.Clear();
+				ConnectionsSentCount.Clear();
                 ConnectionsReceived.Clear();
+				ConnectionsReceivedCount.Clear();
             }
         }
 

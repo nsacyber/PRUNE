@@ -23,14 +23,17 @@ namespace PruneLibrary
 
 
         public Dictionary<string, long> ConnectionsSent;
+		public Dictionary<string, long> ConnectionsSentCount;
         public Dictionary<string, long> ConnectionsReceived;
+		public Dictionary<string, long> ConnectionsReceivedCount;
 
         public long TcpSent { get; set; }
         public long TcpRecv { get; set; }
 
         //constructor that assigns values
         public DataPoint(double cpu, long priv, long working, long readBytes, long writeBytes, long readOps, long writeOps,
-            long udpS, long udpR, long tcpS, long tcpR, Dictionary<string, long> connsSent, Dictionary<string, long> connsRecv, DateTime time)
+            long udpS, long udpR, long tcpS, long tcpR, Dictionary<string, long> connsSent, Dictionary<string, long> connsSentCount, 
+			Dictionary<string, long> connsRecv, Dictionary<string, long> connsRecvCount, DateTime time)
         {
             CpuVal = cpu;
             PrivBytesVal = priv;
@@ -45,7 +48,9 @@ namespace PruneLibrary
             TcpRecv = tcpR;
 
             ConnectionsSent = new Dictionary<string, long>(connsSent);
+			ConnectionsSentCount = new Dictionary<string, long>(connsSentCount);
             ConnectionsReceived = new Dictionary<string, long>(connsRecv);
+			ConnectionsReceivedCount = new Dictionary<string, long>(connsRecvCount);
 
             LogTime = time;
         }

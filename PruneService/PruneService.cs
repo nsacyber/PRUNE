@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.ServiceProcess;
 using PruneLibrary;
-using System.Timers;
 using System.IO;
 using Newtonsoft.Json;
 
@@ -32,23 +31,31 @@ namespace PruneService
         private uint _configCheckInterval = ConfigIntervalDefault;
 
         //Timers
-        private readonly Timer _monitorTimer = new Timer();
-        private readonly Timer _whitelistTimer = new Timer();
-        private readonly Timer _configTimer = new Timer();
+        private readonly System.Timers.Timer _monitorTimer = new System.Timers.Timer();
+        private readonly System.Timers.Timer _whitelistTimer = new System.Timers.Timer();
+        private readonly System.Timers.Timer _configTimer = new System.Timers.Timer();
 
         //List of Prune instance objects, one for each process being monitored
         private readonly Dictionary<int, PruneProcessInstance> _PruneInstances = new Dictionary<int, PruneProcessInstance>();
         private readonly Dictionary<int, string> _processIdToWhitelistEntry = new Dictionary<int, string>();
         private readonly List<int> _finishedInstances = new List<int>();
 
-        public PruneService()
+		public PruneService()
         {
             InitializeComponent();
 		}
 
+		//Handle any unhandled exceptions
+		void UnhandedExceptionHandler(object sender, UnhandledExceptionEventArgs e) {
+			Prune.HandleError(true, 1, "UNHANDLED EXCEPTION: " + (e.ExceptionObject as Exception).Message);
+		}
+
 		protected override void OnStart(string[] args)
         {
+			//register our unhandled exception handler
+			AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandedExceptionHandler);
 
+			//Log that the service is starting
 			bool returnVal = PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteSERVICE_STARTING_EVENT();
 
             //create the ProgramData directory if it does not already exist
@@ -424,7 +431,9 @@ namespace PruneService
         //Runs when the service shuts down
         protected override void OnStop()
         {
-            lock (_PruneInstances)
+			PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteSERVICE_EXITING_EVENT();
+
+			lock (_PruneInstances)
             {
                 //Write whatever is currently in the cache to a file for all processes being monitored
                 foreach (PruneProcessInstance inst in _PruneInstances.Values)
@@ -434,8 +443,6 @@ namespace PruneService
             }
 
             Prune.DisposeTraceSession();
-
-			PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteSERVICE_EXITING_EVENT();
         }
 
         //Timer function used to get data from Performance Counters
@@ -488,7 +495,7 @@ namespace PruneService
 
         private Dictionary<int, PruneProcessInstance> ParseWhitelist()
         {
-            Dictionary<int, PruneProcessInstance> newInstances = new Dictionary<int, PruneProcessInstance>();
+			Dictionary<int, PruneProcessInstance> newInstances = new Dictionary<int, PruneProcessInstance>();
 
             if (File.Exists(WhitelistPath))
             {
@@ -580,7 +587,7 @@ namespace PruneService
 															break;
 														}
 													}
-												} catch {
+												} catch (Exception) {
 													//If we fail to get any modules for some reason, we need to keep going
 													//We also don't need to report the error, because this will happen any time we try for a protected processes,
 													//  which may be often
@@ -723,10 +730,10 @@ namespace PruneService
             return newInstances;
         }
 
-        //Data holding class used for configurating the service
-        //It is serialized to create the config file and deserialized to read the config file
-        //It is not used after initial setup
-        class ServiceConfiguration
+		//Data holding class used for configurating the service
+		//It is serialized to create the config file and deserialized to read the config file
+		//It is not used after initial setup
+		class ServiceConfiguration
         {
 
             public uint CalculateStatisticsInterval { get; set; }

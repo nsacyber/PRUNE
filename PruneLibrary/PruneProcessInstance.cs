@@ -78,9 +78,8 @@ namespace PruneLibrary
         //Initialize the counters for the current process
         public void InitializeInstance()
         {
-
-            //Set up the performance counters, false is returned if something goes wrong
-            SetPerfCounters();
+			//Set up the performance counters
+			SetPerfCounters();
 
             //set the start and end times 
             if (DateTime.Equals(DateTime.MinValue, _logStart))
@@ -111,7 +110,7 @@ namespace PruneLibrary
 
         private void SetPerfCounters()
         {
-            string instanceName;
+			string instanceName;
 
             //get the name of the process from the PID
             string procNameTemp = Prune.GetProcessNameFromProcessId(ProcessId);
@@ -126,7 +125,7 @@ namespace PruneLibrary
             }
             catch (Exception e)
             {
-                Prune.HandleError(_isService, 0, "Error getting instance name. Setting it to null" + Environment.NewLine + e.Message);
+                Prune.HandleError(_isService, 0, "Error getting instance name. Setting it to null. This error likely does not affect PRUNE's Functionality. " + Environment.NewLine + e.Message);
                 instanceName = null;
             }
 
@@ -206,7 +205,7 @@ namespace PruneLibrary
         //Set all performance counters to null
         public void NullPerformanceCounters()
         {
-            _cpuPc = null;
+			_cpuPc = null;
             _privBytesPc = null;
             _workingSetPc = null;
         }
@@ -315,9 +314,8 @@ namespace PruneLibrary
 
         public void LogDataFromFiles(List<string> list, bool loggingFromOldFiles)
         {
-
-            //the number of data points processed
-            uint dataPointCount = 0;
+			//the number of data points processed
+			uint dataPointCount = 0;
 
             //variables to hold calculations
             double averageCpu = 0;
@@ -393,7 +391,8 @@ namespace PruneLibrary
                             obj["DiskBytesReadVal"].ToObject<long>(), obj["DiskBytesWriteVal"].ToObject<long>(), obj["DiskOpsReadVal"].ToObject<long>(),
                             obj["DiskOpsWriteVal"].ToObject<long>(), obj["UdpSent"].ToObject<long>(),
                             obj["UdpRecv"].ToObject<long>(), obj["TcpSent"].ToObject<long>(), obj["TcpRecv"].ToObject<long>(), obj["ConnectionsSent"].ToObject<Dictionary<string, long>>(),
-                            obj["ConnectionsReceived"].ToObject<Dictionary<string, long>>(), obj["LogTime"].ToObject<DateTime>())
+                            obj["ConnectionsSentCount"].ToObject<Dictionary<string, long>>(), obj["ConnectionsReceived"].ToObject<Dictionary<string, long>>(), 
+							obj["ConnectionsReceivedCount"].ToObject<Dictionary<string, long>>(), obj["LogTime"].ToObject<DateTime>())
                         );
                     }
                 }
@@ -403,9 +402,9 @@ namespace PruneLibrary
                     return;
                 }
 
-                //loop through the array doing the math as normal
-                //increment dataPointCount in the dataPoint loop
-                foreach (DataPoint data in fileList)
+				//loop through the array doing the math as normal
+				//increment dataPointCount in the dataPoint loop
+				foreach (DataPoint data in fileList)
                 {
                     dataPointCount++;
 
@@ -532,38 +531,60 @@ namespace PruneLibrary
                         minDiskWriteOps = diskWriteOps;
                     }
 
-                    foreach (string key in data.ConnectionsSent.Keys)
+					//Add connection sent bytes to our DataPoint object
+					foreach (string key in data.ConnectionsSent.Keys)
+                    {
+						//First make sure the key is present in dictionary
+						if (!connectionData.ContainsKey(key)) {
+							connectionData.Add(key, new TcpConnectionData(key));
+						}
+
+						//add the data
+						connectionData[key].AddOutData(data.ConnectionsSent[key]);
+                    }
+
+					//Add connection sent count to our DataPoint object
+					foreach (string key in data.ConnectionsSentCount.Keys) {
+						if (!connectionData.ContainsKey(key)) {
+							connectionData.Add(key, new TcpConnectionData(key));
+						}
+
+						connectionData[key].AddOutCount(data.ConnectionsSentCount[key]);
+					}
+
+					//Add connection received bytes to our DataPoint object
+					foreach (string key in data.ConnectionsReceived.Keys)
                     {
                         if (!connectionData.ContainsKey(key))
                         {
-                            connectionData.Add(key, new TcpConnectionData(key, _isService, Prune.GetProcessNameFromProcessId(ProcessId)));
+                            connectionData.Add(key, new TcpConnectionData(key));
                         }
 
-                        connectionData[key].AddOutData(data.ConnectionsSent[key]);
+						connectionData[key].AddInData(data.ConnectionsReceived[key]);
                     }
 
-                    foreach (string key in data.ConnectionsReceived.Keys)
-                    {
-                        if (!connectionData.ContainsKey(key))
-                        {
-                            connectionData.Add(key, new TcpConnectionData(key, _isService, Prune.GetProcessNameFromProcessId(ProcessId)));
-                        }
+					//Add connection received count to our DataPoint object
+					foreach (string key in data.ConnectionsReceivedCount.Keys) {
+						if (!connectionData.ContainsKey(key)) {
+							connectionData.Add(key, new TcpConnectionData(key));
+						}
 
-                        connectionData[key].AddInData(data.ConnectionsReceived[key]);
-                    }
-                }
+						connectionData[key].AddInCount(data.ConnectionsReceivedCount[key]);
+					}
 
-                string[] fileNameSplit = fileName.Split('\\');
+				}
+
+				string[] fileNameSplit = fileName.Split('\\');
                 string loggedDirectory = _rootDirectory + "\\" + WhitelistEntry + "\\logged\\";
 
-                try
+				try
                 {
                     //Move the file, that has been completely processed, into the logged subfolder
                     Directory.CreateDirectory(loggedDirectory);
 
                     //Move the file to the logged directory
                     File.Move(fileName, loggedDirectory + fileNameSplit[fileNameSplit.Length - 1]);
-                }
+				}
                 catch (Exception e)
                 {
                     Prune.HandleError(_isService, 0, "Failed to move file " + fileName + " to " + loggedDirectory + fileNameSplit[fileNameSplit.Length - 1] + " after logging" + Environment.NewLine + e.Message);
@@ -593,12 +614,16 @@ namespace PruneLibrary
             averageDiskWriteBytes /= dataPointCount;
             averageDiskWriteOps /= dataPointCount;
 
-            try
+			try
             {
-				string Connections = "No Connections";
+				string Connections = "";
 
 				foreach (TcpConnectionData data in connectionData.Values) {
 					Connections += data.ToString();
+				}
+
+				if (String.IsNullOrWhiteSpace(Connections)) {
+					Connections = "No Connections";
 				}
 
 				try {
@@ -615,26 +640,27 @@ namespace PruneLibrary
 				} catch (Exception e) {
 					Prune.HandleError(_isService, 0, "Error printing data report event" + Environment.NewLine + e.Message);
 				}
-
 			}
             catch (Exception e)
             {
                 Prune.HandleError(_isService, 0, "Error outputting statistics to log" + Environment.NewLine + e.Message);
             }
 
-            if (_cpuPc == null && _privBytesPc == null && _workingSetPc == null)
+			//If all of the performance counters are null, then we can stop monitoring this process
+			if (_cpuPc == null && _privBytesPc == null && _workingSetPc == null)
             {
                 ProcessFinished = true;
             }
 
-            //If this is not logging files left over from a previous running of the tool, then advance the log interval times
-            if (!loggingFromOldFiles)
+			//If this is not logging files left over from a previous running of the tool, then advance the log interval times
+			if (!loggingFromOldFiles)
             {
                 _logStart = _logFinish;
                 _logFinish = _logStart.AddSeconds(_logInterval);
             }
-        }
+		}
 
+		//Log that we are closing, set the performance counters to null, dump anything in the data cache, and then immediately log from the cache files since we may never come back to that data
         public void FinishMonitoring()
         {
 			PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteFINISHED_EVENT(WhitelistEntry + "_" + ProcessId);
@@ -647,8 +673,9 @@ namespace PruneLibrary
         //The service is stopping, so we need to dump the current cache to a file
         public void DumpCache()
         {
-            //Create file name and full path
-            string fileName = _rootDirectory + "\\" + WhitelistEntry + "\\" + WhitelistEntry + "_" + ProcessId + "-" + _cacheStart.ToString("yyyyMMdd_HHmmss") + "-" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".json";
+
+			//Create file name and full path
+			string fileName = _rootDirectory + "\\" + WhitelistEntry + "\\" + WhitelistEntry + "_" + ProcessId + "-" + _cacheStart.ToString("yyyyMMdd_HHmmss") + "-" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".json";
 
             //Create the process directory if it does not already exist
             Directory.CreateDirectory(_rootDirectory + "\\" + WhitelistEntry + "\\");
@@ -676,11 +703,11 @@ namespace PruneLibrary
         //Record the next data point from each counter and add it to the cache list
         public void GetData()
         {
-            //If the current cache interval is over
-            if (_isService && DateTime.Compare(_cacheFinish, DateTime.Now) < 0)
+			//If the current cache interval is over
+			if (_isService && DateTime.Compare(_cacheFinish, DateTime.Now) < 0)
             {
-                //adjust the cache times to the next interval
-                _cacheStart = _cacheFinish;
+				//adjust the cache times to the next interval
+				_cacheStart = _cacheFinish;
                 _cacheFinish = _cacheStart.AddSeconds(_writeCacheInterval);
 
                 //write the current cache to a file before adding new information to the cache
@@ -713,18 +740,18 @@ namespace PruneLibrary
 					return;
 				}
 
-                double cpuAdjusted;
+				double cpuAdjusted;
                 double privValue;
                 double workingValue;
 
+				//Get the data from the performance counters in a try catch in case one of the counters has closed
                 try
                 {
                     cpuAdjusted = (_cpuPc.NextValue() / _totalCpuThreshold) * 100;
                     privValue = _privBytesPc.NextValue();
                     workingValue = _workingSetPc.NextValue();
                 }
-                catch (Exception)
-                {
+                catch (Exception) { 
                     if (_isService)
                     {
 						PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteCANNOT_GATHER_EVENT(WhitelistEntry + "_" + ProcessId);
@@ -734,8 +761,8 @@ namespace PruneLibrary
                     return;
                 }
 
-                //reset localEtwCounters
-                Prune.Counters localEtwCounters = null;
+				//reset localEtwCounters
+				Prune.Counters localEtwCounters = null;
 
                 //Get the ETW data, which includes Disk I/O and Network I/O
                 try
@@ -747,8 +774,8 @@ namespace PruneLibrary
                     Prune.HandleError(_isService, 0, "Error getting ETW Data:" + Environment.NewLine + e.Message);
                 }
 
-                //If nothing is retrieved, create a new Counter object with all values set to 0
-                if (localEtwCounters == null)
+				//If nothing is retrieved, create a new Counter object with all values set to 0
+				if (localEtwCounters == null)
                 {
                     localEtwCounters = new Prune.Counters();
                 }
@@ -756,9 +783,10 @@ namespace PruneLibrary
                 //Add the data point to the cache
                 DataPoint tempDataPoint = new DataPoint(cpuAdjusted, Convert.ToInt64(privValue), Convert.ToInt64(workingValue), localEtwCounters.DiskReadBytes, localEtwCounters.DiskWriteBytes,
                         localEtwCounters.DiskReadOperations, localEtwCounters.DiskWriteOperations, localEtwCounters.UdpSent, localEtwCounters.UdpReceived,
-                        localEtwCounters.TcpSent, localEtwCounters.TcpReceived, localEtwCounters.ConnectionsSent, localEtwCounters.ConnectionsReceived, DateTime.Now);
+                        localEtwCounters.TcpSent, localEtwCounters.TcpReceived, localEtwCounters.ConnectionsSent, localEtwCounters.ConnectionsSentCount, localEtwCounters.ConnectionsReceived, 
+						localEtwCounters.ConnectionsReceivedCount, DateTime.Now);
                 _cache.Add(tempDataPoint);
-            }
+			}
         }
 
         //Adds a file to the unlogged files list
