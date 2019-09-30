@@ -74,6 +74,11 @@ namespace PruneLibrary
             //calculate the maximum value for the CPU performance counter, number of logical processor cores times 100.
             _totalCpuThreshold = Environment.ProcessorCount * 100;
 
+			//If something goes wrong and this value equals zero, stop this from processing
+			if(_totalCpuThreshold == 0) {
+				ProcessFinished = true;
+			}
+
             _cacheStart = intervalStart;
             _logStart = intervalStart;
         }
@@ -81,6 +86,10 @@ namespace PruneLibrary
         //Initialize the counters for the current process
         public void InitializeInstance()
         {
+			if(ProcessFinished) {
+				return;
+			}
+
 			//Set up the performance counters
 			SetPerfCounters();
 

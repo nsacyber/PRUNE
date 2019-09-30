@@ -130,6 +130,12 @@ namespace PruneLibrary
         //  If the interval length is a day, then the end time will be calculated as midnight of the next day
         public static DateTime CalculateIntervalFinishTime(DateTime startTime, uint interval)
         {
+
+			if(interval == 0) {
+				//If, for some reason, interval is passed in as 0, we reset it to 3600 seconds, or 1 hour, by default to prevent divide by 0 errors. 
+				interval = 3600;
+			}
+
             DateTime finishTime = startTime;
 
             uint days = interval / 86400;

@@ -189,6 +189,20 @@ namespace PruneService
                     _whitelistCheckInterval = config.WhitelistCheckInterval;
                     _configCheckInterval = config.ConfigCheckInterval;
 
+					//Bounds checking on input to ensure everything is a valid input
+					//	If something does equal 0, then we set it to the default time
+					if(_logInterval == 0) {
+						_logInterval = 86400;
+					}
+
+					if(_writeCacheInterval == 0) {
+						_writeCacheInterval = 3600;
+					}
+
+					if(_monitorInterval == 0) {
+						_monitorInterval = 1;
+					}
+
                     try
                     {
                         _monitorTimer.Interval = _monitorInterval * 1000;
