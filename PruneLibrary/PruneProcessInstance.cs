@@ -48,7 +48,10 @@ namespace PruneLibrary
         private DateTime _cacheStart; //Start of current cache interval
         private DateTime _cacheFinish; //end of current cache interval
         private DateTime _logStart; //start of current stat logging interval
-        private DateTime _logFinish = DateTime.MinValue; //end of current stat logging 
+        private DateTime _logFinish = DateTime.MinValue; //end of current stat logging
+
+		//Semaphores
+		Semaphore PerfCounterSem = new Semaphore(1,1);
 
         public PruneProcessInstance(bool service, int procId, string whitelistEnt, uint writeInterval, uint logInterval, string root) : this(service, procId, whitelistEnt, writeInterval, logInterval, root, DateTime.MinValue)
         {
@@ -110,6 +113,15 @@ namespace PruneLibrary
 
         private void SetPerfCounters()
         {
+			PerfCounterSem.WaitOne();
+			
+			//An additional check to prevent processes marked as finished from continuing
+			if(ProcessFinished) {
+				NullPerformanceCounters();
+				PerfCounterSem.Release();
+				return;
+			}
+
 			string instanceName;
 
             //get the name of the process from the PID
@@ -129,33 +141,27 @@ namespace PruneLibrary
                 instanceName = null;
             }
 
-            //For each process, set up an event handler for when a process exits
-            //This is because if a process exits, the instance names of other processes with the same name may change
-            //We need to use the instance name if we get the PID, so recalculate the correct instance name
-            if (_isService)
-            {
-                try
-                {
-                    foreach (Process proc in _processesWithName)
-                    {
-                        proc.EnableRaisingEvents = true;
-                        proc.Exited += (sender, e) => { SetPerfCounters(); };
-                    }
-                }
-                catch (Exception)
-                {
-                    if (_isService)
-                    {
-						PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteEXIT_EVENT_ERROR_EVENT(WhitelistEntry + "_" +
-							ProcessId);
-                    }
-                }
-            }
-
             //if the string is not null or empty, set up Perf Counters
             if (!String.IsNullOrWhiteSpace(instanceName))
             {
-                try
+				//For each process, set up an event handler for when a process exits
+				//This is because if a process exits, the instance names of other processes with the same name may change
+				//We need to use the instance name if we get the PID, so recalculate the correct instance name
+				if (_isService) {
+					try {
+						foreach (Process proc in _processesWithName) {
+							proc.EnableRaisingEvents = true;
+							proc.Exited += (sender, e) => { SetPerfCounters(); };
+						}
+					} catch (Exception) {
+						if (_isService) {
+							PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteEXIT_EVENT_ERROR_EVENT(WhitelistEntry + "_" +
+								ProcessId);
+						}
+					}
+				}
+
+				try
                 {
                     //Create the % processor time counter and start it
                     //the first next value call is required to begin gathering information on the process
@@ -165,7 +171,8 @@ namespace PruneLibrary
                 catch (Exception e)
                 {
                     Prune.HandleError(_isService, 0, "Failed to initialize % Processor Time performance counter" + Environment.NewLine + e.Message);
-                    return;
+					PerfCounterSem.Release();
+					return;
                 }
 
                 try
@@ -177,7 +184,8 @@ namespace PruneLibrary
                 catch (Exception e)
                 {
                     Prune.HandleError(_isService, 0, "Failed to initialize Private Bytes performance counter" + Environment.NewLine + e.Message);
-                    return;
+					PerfCounterSem.Release();
+					return;
                 }
 
                 try
@@ -189,7 +197,8 @@ namespace PruneLibrary
                 catch (Exception e)
                 {
                     Prune.HandleError(_isService, 0, "Failed to initialize Private Working Set performance counter" + Environment.NewLine + e.Message);
-                    return;
+					PerfCounterSem.Release();
+					return;
                 }
 
                 //give the counters a quarter of a second to ensure they start to gather data
@@ -199,8 +208,10 @@ namespace PruneLibrary
             {
                 //The procName was null or empty, so set them all to null
 				FinishMonitoring();
-            }
-        }
+			}
+
+			PerfCounterSem.Release();
+		}
 
         //Set all performance counters to null
         public void NullPerformanceCounters()
@@ -701,8 +712,13 @@ namespace PruneLibrary
         }
 
         //Record the next data point from each counter and add it to the cache list
-        public void GetData()
+        public bool GetData()
         {
+
+			if(ProcessFinished) {
+				return false;
+			}
+
 			//If the current cache interval is over
 			if (_isService && DateTime.Compare(_cacheFinish, DateTime.Now) < 0)
             {
@@ -733,11 +749,11 @@ namespace PruneLibrary
 						//	us to reset them on the next data call
 						NullPerformanceCounters();
 					}
-				} catch (Exception e) {
+				} catch (Exception) {
 					//This happens if the current pid we are monitoring no longer exists, so we tell this instance to close and null the perf counters on all
 					//	other processes that share the same name to prevent instance name confusion and errors
 					FinishMonitoring();
-					return;
+					return false;
 				}
 
 				double cpuAdjusted;
@@ -747,7 +763,7 @@ namespace PruneLibrary
 				//Get the data from the performance counters in a try catch in case one of the counters has closed
                 try
                 {
-                    cpuAdjusted = (_cpuPc.NextValue() / _totalCpuThreshold) * 100;
+					cpuAdjusted = (_cpuPc.NextValue() / _totalCpuThreshold) * 100;
                     privValue = _privBytesPc.NextValue();
                     workingValue = _workingSetPc.NextValue();
                 }
@@ -758,7 +774,7 @@ namespace PruneLibrary
                     }
 
 					FinishMonitoring();
-                    return;
+                    return false;
                 }
 
 				//reset localEtwCounters
@@ -767,7 +783,7 @@ namespace PruneLibrary
                 //Get the ETW data, which includes Disk I/O and Network I/O
                 try
                 {
-                    localEtwCounters = Prune.GetEtwDataForProcess(ProcessId);
+					localEtwCounters = Prune.GetEtwDataForProcess(ProcessId);
                 }
                 catch (Exception e)
                 {
@@ -777,15 +793,20 @@ namespace PruneLibrary
 				//If nothing is retrieved, create a new Counter object with all values set to 0
 				if (localEtwCounters == null)
                 {
-                    localEtwCounters = new Prune.Counters();
+					localEtwCounters = new Prune.Counters();
                 }
 
-                //Add the data point to the cache
-                DataPoint tempDataPoint = new DataPoint(cpuAdjusted, Convert.ToInt64(privValue), Convert.ToInt64(workingValue), localEtwCounters.DiskReadBytes, localEtwCounters.DiskWriteBytes,
+				//Add the data point to the cache
+				DataPoint tempDataPoint = new DataPoint(cpuAdjusted, Convert.ToInt64(privValue), Convert.ToInt64(workingValue), localEtwCounters.DiskReadBytes, localEtwCounters.DiskWriteBytes,
                         localEtwCounters.DiskReadOperations, localEtwCounters.DiskWriteOperations, localEtwCounters.UdpSent, localEtwCounters.UdpReceived,
                         localEtwCounters.TcpSent, localEtwCounters.TcpReceived, localEtwCounters.ConnectionsSent, localEtwCounters.ConnectionsSentCount, localEtwCounters.ConnectionsReceived, 
 						localEtwCounters.ConnectionsReceivedCount, DateTime.Now);
                 _cache.Add(tempDataPoint);
+
+				return true;
+			} else {
+				FinishMonitoring();
+				return false;
 			}
         }
 

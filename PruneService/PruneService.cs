@@ -456,15 +456,16 @@ namespace PruneService
             {
                 foreach (KeyValuePair<int, PruneProcessInstance> entry in _PruneInstances)
                 {
-                    //If the instance has been flagged as finished, add it to a list
-                    if (entry.Value.ProcessFinished)
-                    {
-                        _finishedInstances.Add(entry.Key);
-                    }
-                    else //Otherwise, we can call the get data method
-                    {
-                        entry.Value.GetData();
-                    }
+					//try to get data
+					bool getDataSuccessful = entry.Value.GetData();
+
+					//If there was an error or if the process is marked as finished,
+					//	we need to stop monitoring it
+					if (!getDataSuccessful) {
+						_finishedInstances.Add(entry.Key);
+					} else {
+					}
+
                 }
 
                 //Loop through the finished instances and remove them from the active instance list
