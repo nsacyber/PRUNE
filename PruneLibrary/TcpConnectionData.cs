@@ -35,7 +35,7 @@ namespace PruneLibrary
 			try {
 				ipEntry = Dns.GetHostEntry(Address.Split(';')[0]);
 				HostName = ipEntry.HostName;
-			} catch (Exception e) {
+			} catch (Exception) {
 				HostName = "Unknown";
 				PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteHOST_NAME_ERROR_EVENT(name);
 			}
@@ -106,7 +106,7 @@ namespace PruneLibrary
         }
 
 		public override string ToString() {
-			return " // " + HostName + " -- " + Address + " ::  TotalBytesIn: " + TotalIn + ", MaxBytesIn: " + 
+			return HostName + " -- " + Address + " ::  TotalBytesIn: " + TotalIn + ", MaxBytesIn: " + 
 				MaxIn + ", MinBytesIn: " + MinIn + ", AvgBytesIn: " + AverageIn + ", ConnectionsIn: " + ConnsCountIn + "," + Environment.NewLine + "TotalBytesOut: " + 
 				TotalOut + ", MaxBytesOut: " + MaxOut + ", MinBytesOut: " + MinOut + ", AvgBytesOut: " + 
 				AverageOut + ", ConnectionsOut: " + ConnsCountOut + Environment.NewLine + Environment.NewLine;

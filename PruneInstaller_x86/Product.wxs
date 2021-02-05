@@ -5,7 +5,7 @@
 
   <!--279D11D8-21D2-41FD-AC15-F66090EDBCB8-->
 
-  <Product Id="*" Name="Prune" Language="1033" Version="1.0.0" Manufacturer="Y11121" UpgradeCode="F5E2EC02-0A7A-4D26-A7D7-5D83C889895E">
+  <Product Id="*" Name="Prune" Language="1033" Version="!(bind.FileVersion.ServiceFile)" Manufacturer="C151" UpgradeCode="F5E2EC02-0A7A-4D26-A7D7-5D83C889895E">
     <Package Id="*" InstallerVersion="200" Compressed="yes" InstallScope="perMachine" Platform="x86"/>
 
 
@@ -36,47 +36,47 @@
         <Directory Id="Prune" Name="Prune">
           <!-- Event Manifest Resource DLL-->
           <Component Id="EventDll" Guid="82cd29c5-5cde-4ecc-900d-3af1b1e93761" Win64="no">
-            <File Id="EventDllFile" Name="PruneEventManifest.dll" Source="PruneEventManifest.dll" KeyPath="yes" />
+            <File Id="EventDllFile" Name="PruneEventManifest.dll" Source="$(var.PruneLibrary.ProjectDir)" KeyPath="yes" />
           </Component>
           <!-- EventManifest item, to register provider-->
           <Component Id="PruneEventManifest">
-            <File Id="PruneEventManifestFile" Name="PruneEventManifest.man" Source="PruneEventManifest.man" KeyPath="yes">
+            <File Id="PruneEventManifestFile" Name="PruneEventManifest.man" Source="$(var.PruneLibrary.ProjectDir)" KeyPath="yes">
               <util:EventManifest MessageFile="C:\Program Files\Prune\PruneEventManifest.dll" ResourceFile="C:\Program Files\Prune\PruneEventManifest.dll" />
             </File>
           </Component>
           <!-- JSON.NET library dependency-->
           <Component Id="JsonNet" Guid="F8F817E0-7FEF-4021-8AF4-FFD4DE6ED556" Win64="no">
-            <File Id="JsonNetLibrary" Name="Newtonsoft.Json.dll" Source="Newtonsoft.Json.dll" KeyPath="yes" />
+            <File Id="JsonNetLibrary" Name="Newtonsoft.Json.dll" Source="$(var.PruneLibrary.TargetDir)" KeyPath="yes" />
           </Component>
           <!-- Microsoft's TraceEvent library dependency-->
           <Component Id="TraceEvent" Guid="C05D90B3-0C67-4431-907B-E13E9CE4CFEF" KeyPath="yes" Win64="no">
-            <File Id="Dia2Lib" Name="Dia2Lib.dll" Source="Dia2Lib.dll" />
-            <File Id="FastSerial" Name="Microsoft.Diagnostics.FastSerialization.dll" Source="Microsoft.Diagnostics.FastSerialization.dll"/>
-            <File Id="TraceEventDll" Name="Microsoft.Diagnostics.Tracing.TraceEvent.dll" Source="Microsoft.Diagnostics.Tracing.TraceEvent.dll"/>
-            <File Id="OsExt" Name="OSExtensions.dll" Source="OSExtensions.dll" />
-            <File Id="InteropRuntimeInfo" Name="System.Runtime.InteropServices.RuntimeInformation.dll" Source="System.Runtime.InteropServices.RuntimeInformation.dll" />
-            <File Id="TraceRelogger" Name="TraceReloggerLib.dll" Source="TraceReloggerLib.dll" />
+            <File Id="Dia2Lib" Name="Dia2Lib.dll" Source="$(var.PruneLibrary.TargetDir)" />
+            <File Id="FastSerial" Name="Microsoft.Diagnostics.FastSerialization.dll" Source="$(var.PruneLibrary.TargetDir)"/>
+            <File Id="TraceEventDll" Name="Microsoft.Diagnostics.Tracing.TraceEvent.dll" Source="$(var.PruneLibrary.TargetDir)"/>
+            <File Id="OsExt" Name="OSExtensions.dll" Source="$(var.PruneLibrary.TargetDir)" />
+            <File Id="InteropRuntimeInfo" Name="System.Runtime.InteropServices.RuntimeInformation.dll" Source="$(var.PruneLibrary.TargetDir)" />
+            <File Id="TraceRelogger" Name="TraceReloggerLib.dll" Source="$(var.PruneLibrary.TargetDir)" />
           </Component>
           <!-- The Prune library file-->
           <Component Id="PruneLibrary" Guid="8C22BBB9-8F0B-434E-8FA8-E5B680730C01" Win64="no">
-            <File Id="DllFile" Name="PruneLibrary.dll" Source="PruneLibrary.dll" KeyPath="yes" />
+            <File Id="DllFile" Name="PruneLibrary.dll" Source="$(var.PruneLibrary.TargetDir)" KeyPath="yes" />
           </Component>
           <!-- The Prune Service exe. Also included managers for the service for automatic installation and uninstallation of the service-->
           <Component Id="PruneService" Guid="9F7D3603-EE5F-448B-A82D-05E24715665E" Win64="no">
-            <File Id="ServiceFile" Name="PruneService.exe" Source="PruneService.exe" KeyPath="yes" />
+            <File Id="ServiceFile" Name="PruneService.exe" Source="$(var.PruneService.TargetDir)" KeyPath="yes" />
             <ServiceInstall Id="PruneService_Install" Name="Prune" Account="LocalSystem" Description="Monitors the resource usage of processes" ErrorControl="normal" Start="auto" Type="ownProcess" Vital="yes" />
             <ServiceControl Id="PruneService_Control" Name="Prune" Remove="uninstall" Stop="uninstall" Wait="yes" />
           </Component>
           <!-- Command line tool-->
           <Component Id="CommandLineTool" Guid="279D11D8-21D2-41FD-AC15-F66090EDBCB8" KeyPath="yes" Win64="no">
-            <File Id="cmdToolFile" Name="Prune.exe" Source="Prune.exe" />
+            <File Id="cmdToolFile" Name="Prune.exe" Source="$(var.Prune.TargetDir)" />
           </Component>
           <!-- powershell script-->
           <Component Id="ReportGeneratorScript" Guid="F1B2F013-4017-4EB1-9080-A7DF79647D6E" KeyPath="yes" Win64="no">
-            <File Id="ScriptFile" Name="ReportGenerator.ps1" Source="ReportGenerator.ps1" />
+            <File Id="ScriptFile" Name="ReportGenerator.ps1" Source="$(var.SolutionDir)" />
           </Component>
           <Component Id="ReadmeFileComp" Guid="5FCF71CB-4225-48AD-A461-E0568DF28397" KeyPath="yes" Win64="no">
-            <File Id="readmeFile" Name="README.md" Source="README.md" />
+            <File Id="readmeFile" Name="README.md" Source="$(var.SolutionDir)" />
           </Component>
         </Directory>
       </Directory>
@@ -84,8 +84,8 @@
         <Directory Id="PruneDataFolder" Name="Prune" >
           <!-- config file and whitelist file-->
           <Component Id="Configuration" Guid="12EAA5E2-0486-4A6F-93D9-70DE9E605633" KeyPath="yes" Win64="no">
-            <File Id="ConfigFile" Name="config.json" Source="config.json"/>
-            <File Id="WhitelistFile" Name="whitelist.txt" Source="whitelist.txt"/>
+            <File Id="ConfigFile" Name="config.json" Source="$(var.SolutionDir)"/>
+            <File Id="WhitelistFile" Name="whitelist.txt" Source="$(var.SolutionDir)"/>
           </Component>
           <!-- I need to provide this and I have no idea why. The tutorial told me to -->
           <Component Id="PruneDataFolderComponent" Guid="A0730FA7-AD4C-4426-A424-F283E26A9DB5" >
