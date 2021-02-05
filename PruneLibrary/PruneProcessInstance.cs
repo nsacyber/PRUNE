@@ -20,7 +20,6 @@ namespace PruneLibrary
 
         //Process name information
         public int ProcessId;
-        private Process[] _processesWithName; //array of all processes that share a name with the monitored process
         public string WhitelistEntry;
 
         //true if library called from Prune Service, false if called from Prune command line tool
@@ -121,23 +120,16 @@ namespace PruneLibrary
         }
 
         private void SetPerfCounters()
-        {
+        {            
 			PerfCounterSem.WaitOne();
-			
+
 			//An additional check to prevent processes marked as finished from continuing
 			if(ProcessFinished) {
-				NullPerformanceCounters();
 				PerfCounterSem.Release();
 				return;
 			}
 
 			string instanceName;
-
-            //get the name of the process from the PID
-            string procNameTemp = Prune.GetProcessNameFromProcessId(ProcessId);
-
-            //Get a list of all processes with that name
-            _processesWithName = Prune.GetProcessesFromProcessName(procNameTemp);
 
             //Get the instance name that corresponds to the process id
             try
@@ -153,23 +145,6 @@ namespace PruneLibrary
             //if the string is not null or empty, set up Perf Counters
             if (!String.IsNullOrWhiteSpace(instanceName))
             {
-				//For each process, set up an event handler for when a process exits
-				//This is because if a process exits, the instance names of other processes with the same name may change
-				//We need to use the instance name if we get the PID, so recalculate the correct instance name
-				if (_isService) {
-					try {
-						foreach (Process proc in _processesWithName) {
-							proc.EnableRaisingEvents = true;
-							proc.Exited += (sender, e) => { SetPerfCounters(); };
-						}
-					} catch (Exception) {
-						if (_isService) {
-							PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteEXIT_EVENT_ERROR_EVENT(WhitelistEntry + "_" +
-								ProcessId);
-						}
-					}
-				}
-
 				try
                 {
                     //Create the % processor time counter and start it
@@ -215,7 +190,7 @@ namespace PruneLibrary
             }
             else
             {
-                //The procName was null or empty, so set them all to null
+                //The procName was null or empty
 				FinishMonitoring();
 			}
 
@@ -250,7 +225,9 @@ namespace PruneLibrary
 
 
                 if (!_isService)
+                {
                     Console.WriteLine("\nWriting to file: " + fileName);
+                }
 
                 if (!Directory.Exists(directory))
                 {
@@ -422,9 +399,14 @@ namespace PruneLibrary
                     return;
                 }
 
-				//loop through the array doing the math as normal
-				//increment dataPointCount in the dataPoint loop
-				foreach (DataPoint data in fileList)
+                if (fileList == null || fileList.Count == 0)
+                {
+                    continue;
+                }
+
+                //loop through the array doing the math as normal
+                //increment dataPointCount in the dataPoint loop
+                foreach (DataPoint data in fileList)
                 {
                     dataPointCount++;
 
@@ -611,6 +593,11 @@ namespace PruneLibrary
                 }
             }
 
+            if (dataPointCount == 0)
+            {
+                return;
+            }
+
             //Get a few total for the I/O related measures
             long totalTcpIn = averageTcpIn;
             long totalTcpOut = averageTcpOut;
@@ -680,11 +667,10 @@ namespace PruneLibrary
             }
 		}
 
-		//Log that we are closing, set the performance counters to null, dump anything in the data cache, and then immediately log from the cache files since we may never come back to that data
+		//Log that we are closing, dump anything in the data cache, and then immediately log from the cache files since we may never come back to that data
         public void FinishMonitoring()
         {
 			PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteFINISHED_EVENT(WhitelistEntry + "_" + ProcessId);
-            NullPerformanceCounters();
             DumpCache();
             LogDataFromCacheFiles();
 			this.ProcessFinished = true;
@@ -693,30 +679,33 @@ namespace PruneLibrary
         //The service is stopping, so we need to dump the current cache to a file
         public void DumpCache()
         {
-
-			//Create file name and full path
-			string fileName = _rootDirectory + "\\" + WhitelistEntry + "\\" + WhitelistEntry + "_" + ProcessId + "-" + _cacheStart.ToString("yyyyMMdd_HHmmss") + "-" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".json";
-
-            //Create the process directory if it does not already exist
-            Directory.CreateDirectory(_rootDirectory + "\\" + WhitelistEntry + "\\");
-
-            try
+            //Only write contents of the cache to a file if there is something in the cache
+            if (_cache.Count > 0)
             {
-                //convert list to json
-                string cacheJson = JsonConvert.SerializeObject(_cache);
+                //Create file name and full path
+                string fileName = _rootDirectory + "\\" + WhitelistEntry + "\\" + WhitelistEntry + "_" + ProcessId + "-" + _cacheStart.ToString("yyyyMMdd_HHmmss") + "-" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".json";
 
-                //write json to the file
-                using (StreamWriter sw = new StreamWriter(fileName))
+                //Create the process directory if it does not already exist
+                Directory.CreateDirectory(_rootDirectory + "\\" + WhitelistEntry + "\\");
+
+                try
                 {
-                    sw.Write(cacheJson);
-                    sw.Flush();
-                }
+                    //convert list to json
+                    string cacheJson = JsonConvert.SerializeObject(_cache);
 
-                _unloggedFiles.Add(fileName);
-            }
-            catch (Exception e)
-            {
-                Prune.HandleError(_isService, 0, "Failed to dump cache to " + fileName + " on service shutdown" + Environment.NewLine + e.Message);
+                    //write json to the file
+                    using (StreamWriter sw = new StreamWriter(fileName))
+                    {
+                        sw.Write(cacheJson);
+                        sw.Flush();
+                    }
+
+                    _unloggedFiles.Add(fileName);
+                }
+                catch (Exception e)
+                {
+                    Prune.HandleError(_isService, 0, "Failed to dump cache to " + fileName + " on service shutdown" + Environment.NewLine + e.Message);
+                }
             }
         }
 
@@ -842,9 +831,12 @@ namespace PruneLibrary
             {
                 if (disposing)
                 {
-                    _cpuPc.Dispose();
-                    _privBytesPc.Dispose();
-                    _workingSetPc.Dispose();
+                    if (_cpuPc != null)
+                    { _cpuPc.Dispose(); }
+                    if (_privBytesPc != null)
+                    { _privBytesPc.Dispose(); }
+                    if (_workingSetPc != null)
+                    { _workingSetPc.Dispose(); }                    
                 }
 
                 _disposedValue = true;
