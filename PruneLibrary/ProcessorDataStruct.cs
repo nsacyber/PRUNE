@@ -1,30 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace PruneLibrary {
-	[StructLayout(LayoutKind.Sequential)]
+namespace PruneLibrary 
+{
 	public struct ProcessorDataStruct {
 
-		[MarshalAs(UnmanagedType.ByValTStr, SizeConst=50)]
+		public int processorCount;
 		public string description;
-
-		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 50)]
 		public string name;
-
-		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 5)]
 		public string physCore;
-
-		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 5)]
 		public string logiCore;
-
-		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 10)]
 		public string coreSpeed;
 
-		public ProcessorDataStruct(string desc, string nam, string phys, string log, string speed) {
+		public ProcessorDataStruct(int processorCount, string desc, string nam, string phys, string log, string speed) 
+		{
+			this.processorCount = processorCount;
 			this.description = desc;
 			this.name = nam;
 			this.physCore = phys;
@@ -32,12 +21,19 @@ namespace PruneLibrary {
 			this.coreSpeed = speed;
 		}
 
-		public ProcessorDataStruct(int x) {
+		public ProcessorDataStruct(int x)
+		{
+			this.processorCount = 0;
 			this.description = "";
 			this.name = "";
 			this.physCore = "";
 			this.logiCore = "";
 			this.coreSpeed = "";
+		}
+
+		public override string ToString()
+		{
+			return "Processor " + processorCount + ": " + description + ", " + name + ", " + "Physical cores " + physCore + ", Logical cores " + logiCore + ", Speed " + coreSpeed + Environment.NewLine;
 		}
 	}
 }
