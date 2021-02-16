@@ -1,10 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace PruneLibrary 
-{
+namespace PruneLibrary {
+	[StructLayout(LayoutKind.Sequential)]
 	public struct ConnectionDataStruct {
-
+		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 40)]
 		public string ipAddress;
+
+		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 30)]
 		public string domainName;
 
 		public Int64 bytesSentTotal;
@@ -16,8 +23,7 @@ namespace PruneLibrary
 		public Int64 bytesRcvMax;
 		public Int64 bytesRcvAvg;
 
-		public ConnectionDataStruct(TcpConnectionData data) 
-		{
+		public ConnectionDataStruct(TcpConnectionData data) {
 			this.bytesSentTotal = data.TotalOut;
 			this.bytesSentMin = data.MinOut;
 			this.bytesSentMax = data.MaxOut;

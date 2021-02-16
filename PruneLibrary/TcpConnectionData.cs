@@ -106,7 +106,7 @@ namespace PruneLibrary
         }
 
 		public override string ToString() {
-			return HostName + " -- " + Address + " ::  TotalBytesIn: " + TotalIn + ", MaxBytesIn: " + 
+			return " // " + HostName + " -- " + Address + " ::  TotalBytesIn: " + TotalIn + ", MaxBytesIn: " + 
 				MaxIn + ", MinBytesIn: " + MinIn + ", AvgBytesIn: " + AverageIn + ", ConnectionsIn: " + ConnsCountIn + "," + Environment.NewLine + "TotalBytesOut: " + 
 				TotalOut + ", MaxBytesOut: " + MaxOut + ", MinBytesOut: " + MinOut + ", AvgBytesOut: " + 
 				AverageOut + ", ConnectionsOut: " + ConnsCountOut + Environment.NewLine + Environment.NewLine;
