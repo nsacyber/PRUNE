@@ -80,6 +80,20 @@
           </Component>
         </Directory>
       </Directory>
+	  <Directory Id="WindowsFolder">
+        <Directory Id="PolicyDefinitions" Name="PolicyDefinitions" >
+          <!-- Group Policy admx file -->
+          <Component Id="PruneAdmx" Guid="A52D5489-79E7-4406-811C-3B24C263384B" KeyPath="yes" Win64="no">
+            <File Id="LanguageNeutralFile" Name="Prune.admx" Source="$(var.SolutionDir)"/>
+          </Component>
+		  <Directory Id="enUS" Name="en-US" >
+		      <!-- Group Policy adml file -->
+			  <Component Id="PruneAdml" Guid="8BEECBA3-A790-4A9B-A49E-F2DC7C7C6975" KeyPath="yes" Win64="no">
+				<File Id="LanguageResourceFile" Name="Prune.adml" Source="$(var.SolutionDir)"/>
+			  </Component>
+          </Directory>
+        </Directory>
+      </Directory>
       <Directory Id="CommonAppDataFolder">
         <Directory Id="PruneDataFolder" Name="Prune" >
           <!-- config file and whitelist file-->
@@ -112,6 +126,8 @@
       <ComponentRef Id="TraceEvent" />
       <ComponentRef Id="EventDll"/>
       <ComponentRef Id="PruneEventManifest" />
+	  <ComponentRef Id="PruneAdmx" />
+      <ComponentRef Id="PruneAdml" />
     </Feature>
   </Product>
 </Wix>

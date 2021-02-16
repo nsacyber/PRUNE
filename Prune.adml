@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--  (c) 2006 Microsoft Corporation  -->
+<policyDefinitionResources xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="1.0" schemaVersion="1.0" xmlns="http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions">
+  <displayName>Prune</displayName>
+  <description>Process Resource Usage Notification Engine</description>
+  <resources>
+    <stringTable>
+	 <string id="Prune">Prune</string>
+	 <string id="CalculateStatisticsInterval_Name">Specify wait time to calculate and log usage stats</string>
+	 <string id="CalculateStatisticsInterval_Help">This policy setting determines how long the system waits before reading the data files and publishing a brief usage report to the Prune application log.
+
+This interval determines when the service will generate a usage report for each process from the most recent data files and output them in the PRUNE log. These include the minimums, maximums, and averages for every data point that is gathered. In addition, all disk and network I/O have a total over the period of time. 
+
+If this value is not configured, a default value of 86400 seconds (24 hours) is used. </string>
+	 <string id="WriteCacheToFileInterval_Name">Specify wait time to write each data file</string>
+	 <string id="WriteCacheToFileInterval_Help">This policy setting determines how long the system waits before the cache will be written to file.
+
+This file has the name &lt;Process_Name&gt;_&lt;ProcessID&gt;-&lt;File_Start&gt;-&lt;File_End&gt;.json where &lt;Process_Name&gt; is the name of the process and is the process's PID, &lt;Start_Time&gt; is the gathering time of the first data point in the file, and &lt;Finish_Time&gt; is the gathering time of the last data point in the file. Both times are in yyyyMMdd_HHmmss format. 
+
+If this value is not configured, a default value of 3600 seconds (1 hour) is used. </string>
+     <string id="DataRecordingInterval_Name">Specify wait time to gather data and cache it</string>
+	 <string id="DataRecordingInterval_Help">This policy setting determines the amount of time between the service gathering data and storing it in an internal cache.
+
+If this value is not configured, a default value of 1 second is used. </string>
+     <string id="WhitelistCheckInterval_Name">Specify the amount of time between readings of the whitelist</string>
+	 <string id="WhitelistCheckInterval_Help">This policy setting determines the amount of time between readings of the whitelist.
+
+If this value is not configured, a default value of 60 seconds (1 minute) is used. </string>
+     <string id="ConfigCheckInterval_Name">Specify the amount of time between readings of the config</string>
+	 <string id="ConfigCheckInterval_Help">This policy setting determines the amount of time between readings of the config. 
+
+This includes the configuration for calculateStatisticsInterval, writeCacheToFileInterval, dataRecordingInterval, and whitelistCheckInterval, along with this setting.
+
+If this value is not configured, a default value of 60 seconds (1 minute) is used. </string>
+	 <string id="Whitelist_Name">Enable Whitelist Support</string>
+	 <string id="Whitelist_Help">Specifies whether Whitelist Support is enabled. 
+	 
+When "Enabled" this whitelist will override any local whitelist file.
+
+This list will accept the process name (without a file extension) or the process ID. If a process name is provided and multiple processes of that name are running, they will all be monitored by PRUNE. To target a specific process in this case, provide the PID.
+
+In addition, a module may be specified using module=&lt;module_name&gt;, where module name is the name of a dll or exe file, including the file extension. The service will search each currently running process and begin montoring any that has the specified module loaded. PRUNE will not be able to check loaded modules of any protected process. These processes will be skipped when checking for the module.
+	 
+The "Process and Module Syntax" option accepts process and/or module names.
+
+The "Module Syntax" option accepts only modules. Modules must be specified using module=&lt;module_name&gt;.
+
+The "Process Syntax" option accepts only processes. Include the process name (without a file extension) or the process ID.
+
+If this value is not configured, a local whitelist file is used. </string>
+	 <string id="ProcessSyntax">Process Syntax</string>
+	 <string id="ModuleSyntax">Module Syntax</string>
+	 <string id="ProcessAndModuleSyntax">Process and Module Syntax</string>
+	</stringTable>
+    <presentationTable>
+	 <presentation id="CalculateStatisticsInterval_Name">
+		<decimalTextBox refId="CalculateStatisticsInterval" defaultValue="86400">Seconds:</decimalTextBox>
+		<text>Range is 1 to 86400.</text>
+	 </presentation>
+	 <presentation id="WriteCacheToFileInterval_Name">
+		<decimalTextBox refId="WriteCacheToFileInterval" defaultValue="3600">Seconds:</decimalTextBox>
+		<text>Range is 1 to 43200.</text>
+	 </presentation>
+	 <presentation id="DataRecordingInterval_Name">
+		<decimalTextBox refId="DataRecordingInterval" defaultValue="1">Seconds:</decimalTextBox>
+		<text>Range is 1 to 3600.</text>
+	 </presentation>
+	 <presentation id="WhitelistCheckInterval_Name">
+		<decimalTextBox refId="WhitelistCheckInterval" defaultValue="60">Seconds:</decimalTextBox>
+		<text>Range is 1 to 86400.</text>
+	 </presentation>
+	 <presentation id="ConfigCheckInterval_Name">
+		<decimalTextBox refId="ConfigCheckInterval" defaultValue="60">Seconds:</decimalTextBox>
+		<text>Range is 1 to 86400.</text>
+	 </presentation>
+	 <presentation id="Whitelist_Name">
+        <dropdownList refId="WhitelistSyntax" defaultItem="1">Select Syntax for the Whitelist:</dropdownList>
+        <listBox refId="Whitelist">Monitor these processes and/or modules:</listBox>
+        <text>To create a list of processes and/or modules, click Show. In the Show Contents dialog box, in the Value column, type the process name (without a file extension) or the process ID.</text> 
+		<text>A module may be specified using module=&lt;module_name&gt;, where module name is the name of a dll or exe file, including the file extension.</text>                    
+     </presentation>
+	</presentationTable>
+  </resources>
+</policyDefinitionResources>
