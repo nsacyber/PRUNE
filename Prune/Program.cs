@@ -30,7 +30,7 @@ namespace Prune
         private bool _isStopping;
         private PruneLibrary.Prune.NativeMethods.EventHandler _handler;
 
-        //Called when the program terminates during execution
+        //Called when the program terminates during exevution
         private static bool Handler(PruneLibrary.Prune.NativeMethods.CtrlType sig, Timer timer, out bool isStopping)
         {
             //Stop the timer

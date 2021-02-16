@@ -373,4 +373,3 @@ PruneInstaller_x64/*.txt
 *.rc
 PruneInstaller_x64/PruneEventManifest.man
 PruneInstaller_x64/PruneEventManifest.cs
-Installers.zip

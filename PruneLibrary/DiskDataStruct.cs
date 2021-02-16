@@ -1,22 +1,30 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
 
-namespace PruneLibrary {
-	[StructLayout(LayoutKind.Sequential)]
+namespace PruneLibrary 
+{
 	public struct DiskDataStruct {
-		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 25)]
-		public string manufacturer;
 
-		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 25)]
+		public int diskCount;
+		public string manufacturer;
 		public string model;
 
-		public DiskDataStruct(string man, string mod) {
+		public DiskDataStruct(int diskCount, string man, string mod) 
+		{
+			this.diskCount = diskCount;
 			this.manufacturer = man;
 			this.model = mod;
 		}
 
-		public DiskDataStruct(int x) {
+		public DiskDataStruct(int x)
+		{
+			this.diskCount = 0;
 			this.manufacturer = "";
 			this.model = "";
+		}
+
+		public override string ToString()
+		{
+			return "Disk " + diskCount + ": " + manufacturer + ", " + model + Environment.NewLine;
 		}
 	}
 }
