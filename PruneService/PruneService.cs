@@ -472,9 +472,8 @@ namespace PruneService
 					//	we need to stop monitoring it
 					if (!getDataSuccessful) {
 						_finishedInstances.Add(entry.Key);
-					} else {
-					}
-
+                        entry.Value.Dispose();
+					} 
                 }
 
                 //Loop through the finished instances and remove them from the active instance list
@@ -622,9 +621,7 @@ namespace PruneService
                                                 //  which may be often
                                                 continue;
                                             }
-                                        } else {
-
-                                        }
+                                        } 
                                     }
                                 }
                             }

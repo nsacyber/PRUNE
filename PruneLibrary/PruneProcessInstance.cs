@@ -236,8 +236,6 @@ namespace PruneLibrary
 
                 try
                 {
-
-
                     //convert the cache list to json format and write
                     string cacheJson = JsonConvert.SerializeObject(_cache, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
 
