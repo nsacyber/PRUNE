@@ -47,7 +47,7 @@ namespace PruneService
 
 		//Handle any unhandled exceptions
 		void UnhandedExceptionHandler(object sender, UnhandledExceptionEventArgs e) {
-			Prune.HandleError(true, 1, "UNHANDLED EXCEPTION: " + (e.ExceptionObject as Exception).Message);
+			Prune.HandleError(true, 1, "UNHANDLED EXCEPTION: " + (e.ExceptionObject as Exception).Message + "\nStackTrace ---\n" + (e.ExceptionObject as Exception).StackTrace);
 		}
 
 		protected override void OnStart(string[] args)
@@ -89,7 +89,7 @@ namespace PruneService
             }
             catch (Exception e)
             {
-				Prune.HandleError(true, 1, "Error initializing Prune instances\n" + e.Message + "\n" + e.Source);
+				Prune.HandleError(true, 1, "Error initializing Prune instances\n" + e.Message + "\n" + e.Source + "\nStackTrace --\n" + e.StackTrace);
             }
 
 			//Start the etw sesstion
@@ -477,9 +477,8 @@ namespace PruneService
 					//	we need to stop monitoring it
 					if (!getDataSuccessful) {
 						_finishedInstances.Add(entry.Key);
-					} else {
-					}
-
+                        entry.Value.Dispose();
+					} 
                 }
 
                 //Loop through the finished instances and remove them from the active instance list
@@ -608,9 +607,7 @@ namespace PruneService
 													//  which may be often
 													continue;
 												}
-											} else {
-
-											}
+											} 
                                         }
                                     }
                                 }
@@ -706,16 +703,19 @@ namespace PruneService
                                 {
                                     if (entry.Value == key)
                                     {
-                                        //call the finish monitoring method to wrap everything up
+                                        //Call the finish monitoring method to wrap everything up
                                         _PruneInstances[entry.Key].FinishMonitoring();
+
+                                        //Dispose the prune instance
+                                        _PruneInstances[entry.Key].Dispose();
 
                                         //Remove the process from the list of processes monitored by ETW
                                         Prune.RemoveEtwCounter(entry.Key);
 
-                                        //remove it form the active Prune instances
+                                        //Remove it form the active Prune instances
                                         _PruneInstances.Remove(entry.Key);
 
-                                        //remove it from the active whitelist entries
+                                        //Remove it from the active whitelist entries
                                         _processIdToWhitelistEntry.Remove(entry.Key);
                                     }
                                 }

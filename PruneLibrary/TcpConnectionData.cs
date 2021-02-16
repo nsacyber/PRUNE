@@ -35,7 +35,7 @@ namespace PruneLibrary
 			try {
 				ipEntry = Dns.GetHostEntry(Address.Split(';')[0]);
 				HostName = ipEntry.HostName;
-			} catch (Exception e) {
+			} catch (Exception) {
 				HostName = "Unknown";
 				PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteHOST_NAME_ERROR_EVENT(name);
 			}

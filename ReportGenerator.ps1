@@ -44,7 +44,7 @@ $tcpConnectionsOut = New-Object System.Collections.Hashtable
 Function ProcessFile() {
     Param([string]$filePath)
 
-    $filePathParts = $filePath.Split('/')
+    $filePathParts = $filePath.Split('\')
 	$fileNameParts = $filePathParts[$filePathParts.Count-1].split('-')
 	$procName = $fileNameParts[0]
 
@@ -81,7 +81,7 @@ Function ProcessFile() {
 					$cpuValues.Add($logTime, $f."CpuVal")
 				}
 			} else {
-				if(-Not $cpuValProcess[$logTime].Contains($procName)) {
+				if(-Not $cpuValProcesses[$logTime].Contains($procName)) {
 					if($cpuValues.ContainsKey($logTime)) {
 						$cpuValues[$logTime] += $f."CpuVal"
 					} else {
@@ -227,7 +227,7 @@ $providedStartTime = [bool]($MyInvocation.BoundParameters.Keys -match 'starttime
 $providedFinishTime = [bool]($MyInvocation.BoundParameters.Keys -match 'finishtime')
 $providedPID = [bool]($MyInvocation.BoundParameters.Keys -match 'processPid')
 
-if($providedPID -and (processNames.Count -gt 1)) {
+if($providedPID -and ($processNames.Count -gt 1)) {
 	Write-Output "The provided PID will not be used since a list of processes was provided"
 }
 
@@ -264,7 +264,7 @@ if($startTimeObject -ge $finishTimeObject) {
 
 foreach ($procName in $processNames) {
 	#The two folders that may contain json result files
-	$processFolderPath = "C:\ProgramData\ResourceReporter\" + $procName
+	$processFolderPath = "C:\ProgramData\Prune\" + $procName
 	$processLoggedFolderPath = $processFolderPath + "\logged"
 
 	if(Test-Path $processFolderPath) {
@@ -280,6 +280,8 @@ foreach ($procName in $processNames) {
 					return
 				}
 			}
+			
+			Write-Host "Retrieving data from File: $processFolderPath\$fileName"
 
 			$fileStartString = $stringArray[1]
 			$fileEndString = $stringArray[2].Substring(0, $stringArray[2].Length-5)
@@ -311,6 +313,8 @@ foreach ($procName in $processNames) {
 					return
 				}
 			}
+
+			Write-Host "Retrieving data from File: $processLoggedFolderPath\$fileName"
 
 			$fileStartString = $stringArray[1]
 			$fileEndString = $stringArray[2].Substring(0, $stringArray[2].Length-5)
