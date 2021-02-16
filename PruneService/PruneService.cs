@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.ServiceProcess;
 using PruneLibrary;
+using System.Timers;
 using System.IO;
 
 namespace PruneService
@@ -23,31 +24,23 @@ namespace PruneService
         private uint _configCheckInterval;
      
         //Timers
-        private readonly System.Timers.Timer _monitorTimer = new System.Timers.Timer();
-        private readonly System.Timers.Timer _whitelistTimer = new System.Timers.Timer();
-        private readonly System.Timers.Timer _configTimer = new System.Timers.Timer();
+        private readonly Timer _monitorTimer = new Timer();
+        private readonly Timer _whitelistTimer = new Timer();
+        private readonly Timer _configTimer = new Timer();
 
         //List of Prune instance objects, one for each process being monitored
         private readonly Dictionary<int, PruneProcessInstance> _PruneInstances = new Dictionary<int, PruneProcessInstance>();
         private readonly Dictionary<int, string> _processIdToWhitelistEntry = new Dictionary<int, string>();
         private readonly List<int> _finishedInstances = new List<int>();
 
-		public PruneService()
+        public PruneService()
         {
             InitializeComponent();
 		}
 
-		//Handle any unhandled exceptions
-		void UnhandedExceptionHandler(object sender, UnhandledExceptionEventArgs e) {
-			Prune.HandleError(true, 1, "UNHANDLED EXCEPTION: " + (e.ExceptionObject as Exception).Message + "\nStackTrace ---\n" + (e.ExceptionObject as Exception).StackTrace);
-		}
-
 		protected override void OnStart(string[] args)
         {
-			//register our unhandled exception handler
-			AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandedExceptionHandler);
 
-			//Log that the service is starting
 			bool returnVal = PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteSERVICE_STARTING_EVENT();
 
             //create the ProgramData directory if it does not already exist
@@ -190,25 +183,21 @@ namespace PruneService
                 }
             }
 
-            //Bounds checking on input to ensure everything is a valid input
-            //	If something does equal 0, then we set it to the default time
-            if (_logInterval == 0) {
-                _logInterval = 86400;
-            }
-
-            if (_writeCacheInterval == 0) {
-                _writeCacheInterval = 3600;
-            }
-
-            if (_monitorInterval == 0) {
-                _monitorInterval = 1;
-            }
-
-            try
-            {
-                _monitorTimer.Interval = _monitorInterval * 1000;
-                _whitelistTimer.Interval = _whitelistCheckInterval * 1000;
-                _configTimer.Interval = _configCheckInterval * 1000;
+                    try
+                    {
+                        _monitorTimer.Interval = _monitorInterval * 1000;
+                        _whitelistTimer.Interval = _whitelistCheckInterval * 1000;
+                        _configTimer.Interval = _configCheckInterval * 1000;
+                    }
+                    catch (Exception e)
+                    {
+						Prune.HandleError(true, 1, "Error setting timer interval times from the configuration file input\n" + e.Message);
+                    }
+                }
+                catch (Exception e)
+                {
+					Prune.HandleError(true, 1, "Error reading configuration file\n" + e.Message);
+                }
             }
             catch (Exception e)
             {
@@ -440,9 +429,7 @@ namespace PruneService
         //Runs when the service shuts down
         protected override void OnStop()
         {
-			PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteSERVICE_EXITING_EVENT();
-
-			lock (_PruneInstances)
+            lock (_PruneInstances)
             {
                 //Write whatever is currently in the cache to a file for all processes being monitored
                 foreach (PruneProcessInstance inst in _PruneInstances.Values)
@@ -452,6 +439,8 @@ namespace PruneService
             }
 
             Prune.DisposeTraceSession();
+
+			PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteSERVICE_EXITING_EVENT();
         }
 
         //Timer function used to get data from Performance Counters
@@ -465,15 +454,15 @@ namespace PruneService
             {
                 foreach (KeyValuePair<int, PruneProcessInstance> entry in _PruneInstances)
                 {
-					//try to get data
-					bool getDataSuccessful = entry.Value.GetData();
-
-					//If there was an error or if the process is marked as finished,
-					//	we need to stop monitoring it
-					if (!getDataSuccessful) {
-						_finishedInstances.Add(entry.Key);
-                        entry.Value.Dispose();
-					} 
+                    //If the instance has been flagged as finished, add it to a list
+                    if (entry.Value.ProcessFinished)
+                    {
+                        _finishedInstances.Add(entry.Key);
+                    }
+                    else //Otherwise, we can call the get data method
+                    {
+                        entry.Value.GetData();
+                    }
                 }
 
                 //Loop through the finished instances and remove them from the active instance list
@@ -504,21 +493,7 @@ namespace PruneService
 
         private Dictionary<int, PruneProcessInstance> ParseWhitelist()
         {
-            Dictionary<int, PruneProcessInstance> newInstances = new Dictionary<int, PruneProcessInstance>();  
-        
-            FileConfiguration whitelistFile = new FileConfiguration(ConfigPath, WhitelistPath);
-            GpoConfiguration whitelistGPO = new  GpoConfiguration();
-            
-            //Module Only Syntax = 0
-            //Process and Module Syntax = 1
-            //Process Only Syntax = 2
-            int whitelistSyntax = whitelistGPO.WhitelistSupportEnabled();
-
-            String[] lines;
-
-            if (whitelistSyntax != -1)
-            {
-                lines = whitelistGPO.ReadWhitelist();
+            Dictionary<int, PruneProcessInstance> newInstances = new Dictionary<int, PruneProcessInstance>();
 
                 if (lines == null || lines.Length < 1)             
                     lines = whitelistFile.ReadWhitelist();                 
@@ -584,9 +559,14 @@ namespace PruneService
 
                                 if (_processIdToWhitelistEntry.ContainsValue(moduleName))
                                 {
-                                    programFoundInWhitelist[moduleName] = true;
-                                    //TODO: Continue here? If it is already in the list, we can skip this
-                                }
+                                    //Split 'module:' off, then trim white space 
+                                    string moduleName = processName.Split('.')[0].Trim();
+                                    string moduleFile = processName.Split('=')[1].Trim();
+
+                                    if (_processIdToWhitelistEntry.ContainsValue(moduleName))
+                                    {
+                                        programFoundInWhitelist[moduleName] = true;
+                                    }
 
                                 foreach (Process proc in runningProcesses)
                                 {
@@ -595,34 +575,37 @@ namespace PruneService
                                     {
                                         if (moduleProcess == null || moduleProcess == proc.ProcessName) 
                                         {
-                                            try 
+                                            try
                                             {
                                                 //collect the modules from for the process
                                                 List<Prune.Module> moduleList =
-                                                Prune.NativeMethods.CollectModules(proc);
+                                                    Prune.NativeMethods.CollectModules(proc);
 
-                                                foreach (Prune.Module module in moduleList) {
+                                                foreach (Prune.Module module in moduleList)
+                                                {
                                                     //Check if this module is the one we are looking for
-                                                    if (module.ModuleName.Equals(moduleFile, StringComparison.OrdinalIgnoreCase)) 
+                                                    if (module.ModuleName.Equals(moduleFile,
+                                                        StringComparison.OrdinalIgnoreCase))
                                                     {
                                                         //It is, so add a new instances and log that it was created
                                                         newInstances.Add(proc.Id, new PruneProcessInstance(true,
-                                                            proc.Id, moduleName, _writeCacheInterval, _logInterval, DirectoryPath));
+                                                            proc.Id,
+                                                            moduleName, _writeCacheInterval, _logInterval, DirectoryPath));
                                                         _processIdToWhitelistEntry.Add(proc.Id, moduleName);
-                                                        PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteCREATING_INSTANCE_EVENT(moduleName + "_" + proc.Id);
+														PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteCREATING_INSTANCE_EVENT(moduleName + "_" + proc.Id);
 
                                                         //We don't need to look at the rest of the modules
                                                         break;
                                                     }
                                                 }
-                                            } catch (Exception) {
+                                            }
+                                            catch
+                                            {
                                                 //If we fail to get any modules for some reason, we need to keep going
                                                 //We also don't need to report the error, because this will happen any time we try for a protected processes,
                                                 //  which may be often
                                                 continue;
                                             }
-                                        } else {
-
                                         }
                                     }
                                 }
@@ -741,6 +724,28 @@ namespace PruneService
             }          
 
             return newInstances;
-        }		
+        }
+
+        //Data holding class used for configurating the service
+        //It is serialized to create the config file and deserialized to read the config file
+        //It is not used after initial setup
+        class ServiceConfiguration
+        {
+
+            public uint CalculateStatisticsInterval { get; set; }
+            public uint WriteCacheToFileInterval { get; set; }
+            public uint DataRecordingInterval { get; set; }
+            public uint WhitelistCheckInterval { get; set; }
+            public uint ConfigCheckInterval { get; set; }
+
+            public ServiceConfiguration(uint logInt, uint cacheInt, uint dataInt, uint whitelistInt, uint configInt)
+            {
+                CalculateStatisticsInterval = logInt;
+                WriteCacheToFileInterval = cacheInt;
+                DataRecordingInterval = dataInt;
+                WhitelistCheckInterval = whitelistInt;
+                ConfigCheckInterval = configInt;
+            }
+        }
     }
 }

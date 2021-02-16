@@ -20,43 +20,14 @@ namespace PruneLibrary
 		private static readonly Dictionary<int, Counters> EtwCounters = new Dictionary<int, Counters>();
 		private static int _etwUsers;
 
-		//Hardware information
-		//public static string Proc1Description { get; private set; }
-		//public static string Proc1Name { get; private set; }
-		//public static string Proc1PhysCore { get; private set; }
-		//public static string Proc1LogiCore { get; private set; }
-		//public static string Proc1CoreSpeed { get; private set; }
-		//public static string Proc2Description { get; private set; }
-		//public static string Proc2Name { get; private set; }
-		//public static string Proc2PhysCore { get; private set; }
-		//public static string Proc2LogiCore { get; private set; }
-		//public static string Proc2CoreSpeed { get; private set; }
-		//public static string Proc3Description { get; private set; }
-		//public static string Proc3Name { get; private set; }
-		//public static string Proc3PhysCore { get; private set; }
-		//public static string Proc3LogiCore { get; private set; }
-		//public static string Proc3CoreSpeed { get; private set; }
-		//public static string Proc4Description { get; private set; }
-		//public static string Proc4Name { get; private set; }
-		//public static string Proc4PhysCore { get; private set; }
-		//public static string Proc4LogiCore { get; private set; }
-		//public static string Proc4CoreSpeed { get; private set; }
-		//public static string[] ProcessorDescriptions { get; private set; }
-		//public static string[] ProcessorNames { get; private set; }
-		//public static string[] ProcessorPhysicalCores { get; private set; }
-		//public static string[] ProcessorLogicalCores { get; private set; }
-		//public static string[] ProcessorCoreSpeeds { get; private set; }
-		public static string Processors { get; private set; }
-		public static string ComputerManufacturer { get; private set; }
+        //Hardware information		
+        public static string[] Processors;
+        public static string[] Disks;
+        public static string ComputerManufacturer { get; private set; }
 		public static string ComputerModel { get; private set; }
 		public static string ComputerProcessorNum { get; private set; }
-		public static string Disks { get; private set; }
-		//public static string[] DiskManufaturers { get; private set; }
-		//public static string[] DiskModels { get; private set; }
-		//public static string Disk1Manufacturer { get; private set; }
-		//public static string Disk1Model { get; private set; }
-		public static string RamSize { get; private set; }
-
+        public static string RamSize { get; private set; }
+  		
 		public static void HandleError(bool isService, int source, string message)
         {
             if (isService)
@@ -228,9 +199,19 @@ namespace PruneLibrary
 						computerSystem = new ManagementObjectSearcher("select * from Win32_ComputerSystem"),
 						disks = new ManagementObjectSearcher("select * from Win32_DiskDrive")) 
 					{
+                        foreach (ManagementObject obj in computerSystem.Get())
+                        {
+                            ComputerManufacturer = obj["Manufacturer"].ToString().Trim();
+                            ComputerModel = obj["Model"].ToString().Trim();
+                            ComputerProcessorNum = obj["NumberOfProcessors"].ToString().Trim();
 
-						string procString = "No Processors";
-						int processorCount = 1;
+                            //Size of Ram in GB
+                            RamSize = (Convert.ToUInt64(obj["TotalPhysicalMemory"].ToString().Trim()) / Convert.ToUInt64(Math.Pow(1024d, 3d))).ToString() + " GB";
+                        }
+
+                        List<ProcessorDataStruct> processorList = new List<ProcessorDataStruct>();
+
+                        int processorCount = 1;
 						foreach (ManagementObject obj in processor.Get()) 
 						{
 							string desc = obj["Description"].ToString().Trim();
@@ -240,51 +221,60 @@ namespace PruneLibrary
 
 							//Processor speed in GHz
 							string speed = (Convert.ToInt32(obj["MaxClockSpeed"].ToString().Trim())/1000.0).ToString() + " GHz";
-
-							string temp = "Processor " + processorCount + ": " + desc + ", " + name + ", " + "Physical cores " + physical + ", Logical cores " + logical + ", Speed " + speed + Environment.NewLine;
 							
-							if(processorCount == 1) {
-								procString = temp;
-							} else {
-								procString += temp;
-							}
+							processorList.Add(new ProcessorDataStruct(processorCount, desc, name, physical, logical, speed));
 
-							processorCount++;
-							
-						}
+                            processorCount++;
 
-						Processors = procString;
+                        }
 
-						foreach (ManagementObject obj in computerSystem.Get()) 
-						{
-							ComputerManufacturer = obj["Manufacturer"].ToString().Trim();
-							ComputerModel = obj["Model"].ToString().Trim();
-							ComputerProcessorNum = obj["NumberOfProcessors"].ToString().Trim();
+                        if (processorList.Count > 0)
+                        {
+                            Processors = new string[processorList.Count];
 
-							//Size of Ram in GB
-							RamSize = (Convert.ToUInt64(obj["TotalPhysicalMemory"].ToString().Trim())/Convert.ToUInt64(Math.Pow(1024d,3d))).ToString() + " GB";
-						}
+                            int counter = 0;
+                            foreach (ProcessorDataStruct data in processorList)
+                            {
+                                Processors[counter] = data.ToString();
+                                counter++;
+                            }
+                        }
+                        else
+                        {
+                            Processors = new string[0];
+                            //Processors[0] = "No Processors";
+                        }
 
-						int diskCount = 1;
-						string diskString = "No Disks";
+                        List<DiskDataStruct> diskList = new List<DiskDataStruct>();
+
+                        int diskCount = 1;
 						foreach (ManagementObject obj in disks.Get()) 
 						{
 							string man = obj["Manufacturer"].ToString().Trim();
 							string model = obj["Model"].ToString().Trim();
 
-							string temp = "Disk " + diskCount + ": " + man + ", " + model + Environment.NewLine;
+                            diskList.Add(new DiskDataStruct(diskCount, man, model));
 
-							if (diskCount == 1) {
-								diskString = temp;
-							} else {
-								diskString += temp;
-							}
-
-							diskCount++;
+                            diskCount++;
 						}
 
-						Disks = diskString;
-					}
+                        if (diskList.Count > 0)
+                        {
+                            Disks = new string[diskList.Count];
+
+                            int counter = 0;
+                            foreach (DiskDataStruct data in diskList)
+                            {
+                                Disks[counter] = data.ToString();
+                                counter++;
+                            }
+                        }
+                        else
+                        {
+                            Disks = new string[0];
+                            //Disks[0] = "No Disks";
+                        }
+                    }
 				} catch(Exception e) 
 				{
 					HandleError(isService, 0, "Error while retrieving Hardware information: " + e.Message + Environment.NewLine + e.StackTrace);
