@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.ServiceProcess;
 using PruneLibrary;
+using System.Timers;
 using System.IO;
 
 namespace PruneService
@@ -33,7 +34,7 @@ namespace PruneService
         private readonly Dictionary<int, string> _processIdToWhitelistEntry = new Dictionary<int, string>();
         private readonly List<int> _finishedInstances = new List<int>();
 
-		public PruneService()
+        public PruneService()
         {
             InitializeComponent();
 		}
@@ -45,10 +46,7 @@ namespace PruneService
 
 		protected override void OnStart(string[] args)
         {
-			//register our unhandled exception handler
-			AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandedExceptionHandler);
 
-			//Log that the service is starting
 			bool returnVal = PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteSERVICE_STARTING_EVENT();
 
             //create the ProgramData directory if it does not already exist
@@ -526,9 +524,7 @@ namespace PruneService
         //Runs when the service shuts down
         protected override void OnStop()
         {
-			PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteSERVICE_EXITING_EVENT();
-
-			lock (_PruneInstances)
+            lock (_PruneInstances)
             {
                 //Write whatever is currently in the cache to a file for all processes being monitored
                 foreach (PruneProcessInstance inst in _PruneInstances.Values)
@@ -538,6 +534,8 @@ namespace PruneService
             }
 
             Prune.DisposeTraceSession();
+
+			PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteSERVICE_EXITING_EVENT();
         }
 
         //Timer function used to get data from Performance Counters
@@ -551,16 +549,15 @@ namespace PruneService
             {
                 foreach (KeyValuePair<int, PruneProcessInstance> entry in _PruneInstances)
                 {
-					//try to get data
-					bool getDataSuccessful = entry.Value.GetData();
-
-					//If there was an error or if the process is marked as finished,
-					//	we need to stop monitoring it
-					if (!getDataSuccessful) {
-						_finishedInstances.Add(entry.Key);
-					} else {
-					}
-
+                    //If the instance has been flagged as finished, add it to a list
+                    if (entry.Value.ProcessFinished)
+                    {
+                        _finishedInstances.Add(entry.Key);
+                    }
+                    else //Otherwise, we can call the get data method
+                    {
+                        entry.Value.GetData();
+                    }
                 }
 
                 //Loop through the finished instances and remove them from the active instance list

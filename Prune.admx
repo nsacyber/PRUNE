@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--  (c) 2015 Microsoft Corporation  -->
+<policyDefinitions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="1.0" schemaVersion="1.0" xmlns="http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions">
+  <policyNamespaces>
+    <target prefix="Prune" namespace="Microsoft.Windows.Prune" />
+    <using prefix="windows" namespace="Microsoft.Policies.Windows" />
+  </policyNamespaces>
+  <resources minRequiredRevision="1.0" />
+  <categories>
+    <category name="PruneCategory" displayName="$(string.Prune)">
+      <parentCategory ref="windows:System" />
+    </category>
+  </categories>
+  <policies>
+	<policy name="CalculateStatisticsInterval_Name" class="Machine" displayName="$(string.CalculateStatisticsInterval_Name)" explainText="$(string.CalculateStatisticsInterval_Help)" presentation="$(presentation.CalculateStatisticsInterval_Name)" key="Software\Policies\Prune">
+      <parentCategory ref="PruneCategory" />
+      <supportedOn ref="windows:SUPPORTED_WindowsVista" />	  
+      <elements>
+        <decimal id="CalculateStatisticsInterval" valueName="calculateStatisticsInterval" required="true" minValue="1" maxValue="86400" />
+      </elements>
+    </policy>
+	<policy name="WriteCacheToFileInterval_Name" class="Machine" displayName="$(string.WriteCacheToFileInterval_Name)" explainText="$(string.WriteCacheToFileInterval_Help)" presentation="$(presentation.WriteCacheToFileInterval_Name)" key="Software\Policies\Prune">
+      <parentCategory ref="PruneCategory" />
+      <supportedOn ref="windows:SUPPORTED_WindowsVista" />	  
+      <elements>
+        <decimal id="WriteCacheToFileInterval" valueName="writeCacheToFileInterval" required="true" minValue="1" maxValue="43200" />
+      </elements>
+    </policy>
+	<policy name="DataRecordingInterval_Name" class="Machine" displayName="$(string.DataRecordingInterval_Name)" explainText="$(string.DataRecordingInterval_Help)" presentation="$(presentation.DataRecordingInterval_Name)" key="Software\Policies\Prune">
+      <parentCategory ref="PruneCategory" />
+      <supportedOn ref="windows:SUPPORTED_WindowsVista" />	  
+      <elements>
+        <decimal id="DataRecordingInterval" valueName="dataRecordingInterval" required="true" minValue="1" maxValue="3600" />
+      </elements>
+    </policy>	
+	<policy name="WhitelistCheckInterval_Name" class="Machine" displayName="$(string.WhitelistCheckInterval_Name)" explainText="$(string.WhitelistCheckInterval_Help)" presentation="$(presentation.WhitelistCheckInterval_Name)" key="Software\Policies\Prune">
+      <parentCategory ref="PruneCategory" />
+      <supportedOn ref="windows:SUPPORTED_WindowsVista" />	  
+      <elements>
+        <decimal id="WhitelistCheckInterval" valueName="whitelistCheckInterval" required="true" minValue="1" maxValue="86400" />
+      </elements>
+    </policy>	
+	<policy name="ConfigCheckInterval_Name" class="Machine" displayName="$(string.ConfigCheckInterval_Name)" explainText="$(string.ConfigCheckInterval_Help)" presentation="$(presentation.ConfigCheckInterval_Name)" key="Software\Policies\Prune">
+      <parentCategory ref="PruneCategory" />
+      <supportedOn ref="windows:SUPPORTED_WindowsVista" />	  
+      <elements>
+        <decimal id="ConfigCheckInterval" valueName="configCheckInterval" required="true" minValue="1" maxValue="86400" />
+      </elements>
+    </policy>		
+	<policy name="Whitelist_Name" class="Machine" displayName="$(string.Whitelist_Name)" explainText="$(string.Whitelist_Help)" presentation="$(presentation.Whitelist_Name)" key="SOFTWARE\Policies\Prune">
+      <parentCategory ref="PruneCategory" />
+      <supportedOn ref="windows:SUPPORTED_WindowsVista" />
+      <elements>
+	    <enum id="WhitelistSyntax" valueName="whitelistSyntax" required="true">
+          <item displayName="$(string.ProcessSyntax)">
+            <value>
+              <decimal value="2" />
+            </value>
+          </item>
+          <item displayName="$(string.ModuleSyntax)">
+            <value>
+              <decimal value="0" />
+            </value>
+          </item>
+          <item displayName="$(string.ProcessAndModuleSyntax)">
+            <value>
+              <decimal value="1" />
+            </value>
+          </item>
+        </enum>
+        <list id="Whitelist" key="SOFTWARE\Policies\Prune\Whitelist"/>
+      </elements>
+    </policy>	
+  </policies>
+</policyDefinitions>
+

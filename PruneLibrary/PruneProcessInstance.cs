@@ -20,7 +20,6 @@ namespace PruneLibrary
 
         //Process name information
         public int ProcessId;
-        private Process[] _processesWithName; //array of all processes that share a name with the monitored process
         public string WhitelistEntry;
 
         //true if library called from Prune Service, false if called from Prune command line tool
@@ -121,12 +120,11 @@ namespace PruneLibrary
         }
 
         private void SetPerfCounters()
-        {
+        {            
 			PerfCounterSem.WaitOne();
-			
+
 			//An additional check to prevent processes marked as finished from continuing
 			if(ProcessFinished) {
-				NullPerformanceCounters();
 				PerfCounterSem.Release();
 				return;
 			}
@@ -192,7 +190,7 @@ namespace PruneLibrary
             }
             else
             {
-                //The procName was null or empty, so set them all to null
+                //The procName was null or empty
 				FinishMonitoring();
 			}
 
@@ -684,11 +682,10 @@ namespace PruneLibrary
             }
 		}
 
-		//Log that we are closing, set the performance counters to null, dump anything in the data cache, and then immediately log from the cache files since we may never come back to that data
+		//Log that we are closing, dump anything in the data cache, and then immediately log from the cache files since we may never come back to that data
         public void FinishMonitoring()
         {
 			PruneEvents.PRUNE_EVENT_PROVIDER.EventWriteFINISHED_EVENT(WhitelistEntry + "_" + ProcessId);
-            NullPerformanceCounters();
             DumpCache();
             LogDataFromCacheFiles();
 			this.ProcessFinished = true;
