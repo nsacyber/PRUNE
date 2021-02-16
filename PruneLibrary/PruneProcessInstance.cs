@@ -621,44 +621,31 @@ namespace PruneLibrary
 
 			try
             {
-                //Create array of strings used for TCP connection information
-                string[] Connections;
+				string Connections = "";
 
-                if (connectionData.Count != 0) {
-                    Connections = new string[connectionData.Count];
-                } else {
-                    Connections = new string[0];
-                    //Connections[0] = "No Connections";
-                }
-
-                int counter = 0;
-                foreach (TcpConnectionData data in connectionData.Values) {
-					Connections[counter] = data.ToString();
-                    counter++;
+				foreach (TcpConnectionData data in connectionData.Values) {
+					Connections += data.ToString();
 				}
 
-                string processors = string.Join("\0", Prune.Processors);
-                string disks = string.Join("\0", Prune.Disks);
-                string tcpConnections = string.Join("\0", Connections);
+				if (String.IsNullOrWhiteSpace(Connections)) {
+					Connections = "No Connections";
+				}
 
-                try
-                {
+				try {
 					//call the event
 					bool returnVal = PruneEvents.PRUNE_EVENT_PROVIDER.EventWritePROCESS_REPORT_EVENT(WhitelistEntry + "_" + ProcessId,
-						dataPointCount, Prune.ComputerManufacturer, Prune.ComputerModel,
-						Prune.ComputerProcessorNum, Prune.RamSize, Convert.ToUInt32(Prune.Processors.Length), Convert.ToUInt32(Prune.Disks.Length), processors, disks, minCpu, maxCpu,
+						dataPointCount, Prune.Processors, Prune.Disks, Prune.ComputerManufacturer, Prune.ComputerModel,
+						Prune.ComputerProcessorNum, Prune.RamSize, minCpu, maxCpu,
 						averageCpu, minWorking, maxWorking, averageWorking, minPriv, maxPriv, averagePriv, totalDiskReadBytes,
 						minDiskReadBytes, maxDiskReadBytes, averageDiskReadBytes, totalDiskWriteBytes, minDiskWriteBytes,
 						maxDiskWriteBytes, averageDiskWriteBytes, totalDiskReadOps, minDiskReadOps, maxDiskReadOps, averageDiskReadOps,
 						totalDiskWriteOps, minDiskWriteOps, maxDiskWriteOps, averageDiskWriteOps, totalTcpIn, minTcpIn, maxTcpIn,
 						averageTcpIn, totalTcpOut, minTcpOut, maxTcpOut, averageTcpOut, totalUdpIn, minUdpIn, maxUdpIn, averageUdpIn,
-						totalUdpOut, minUdpOut, maxUdpOut, averageUdpOut, Convert.ToUInt32(Connections.Length), tcpConnections);                   
-
-                } catch (Exception e) {
+						totalUdpOut, minUdpOut, maxUdpOut, averageUdpOut, Connections);
+				} catch (Exception e) {
 					Prune.HandleError(_isService, 0, "Error printing data report event" + Environment.NewLine + e.Message);
 				}
-
-            }
+			}
             catch (Exception e)
             {
                 Prune.HandleError(_isService, 0, "Error outputting statistics to log" + Environment.NewLine + e.Message);
@@ -840,7 +827,7 @@ namespace PruneLibrary
         {
             if (!_disposedValue)
             {
-                 if (disposing)
+                if (disposing)
                 {
                     if (_cpuPc != null)
                     { _cpuPc.Dispose(); }
