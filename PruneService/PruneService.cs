@@ -284,7 +284,7 @@ namespace PruneService
                 _monitorTimer.Interval = _monitorInterval * 1000;
                 _whitelistTimer.Interval = _whitelistCheckInterval * 1000;
                 _configTimer.Interval = _configCheckInterval * 1000;
-				_logTimer.Interval = _logInterval * 1000;
+				_logTimer.Interval = 86400 * 1000;
             }
             catch (Exception e)
             {
